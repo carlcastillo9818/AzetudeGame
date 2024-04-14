@@ -1,11 +1,30 @@
+/* 
+Further progress updates will be written here (much like what I did for my Frogger game)
+
+
+4-13-24 
+This is the Phaser Javascript code for the Pong clone created by Carls and Radon. I started
+by creating the main window for the game (black background at present) and one paddle.
+
+
+
+The width and height properties set the size of the canvas element that Phaser will create.
+In this case 1000 x 600 pixels. Your game world can be any size you like, 
+but this is the resolution the game will display in.
+
+When you set gravity: { y: 0 }, it means there is no vertical gravity acting on 
+the object. It won’t fall or rise due to gravity. This can be useful for creating 
+scenarios where you want to simulate a zero-gravity environment
+ or where you manually handle the object’s movement without relying on gravity.
+*/
 var config = {
     type: Phaser.AUTO,
     width: 1000,
-    height: 800,
+    height: 600,
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 300 },
+            gravity: { y: 0 },
             debug: false
         }
     },
@@ -16,160 +35,115 @@ var config = {
     }
 };
 
-var player;
-var stars;
-var bombs;
-var platforms;
-var cursors;
-var score = 0;
-var gameOver = false;
-var scoreText;
-
+// game objects
+var playerPaddle;
+// var platform;
+var ball;
 var game = new Phaser.Game(config);
 
+/**  About each function:
+ * preload() {} — a method that defines what we need to load before the scene and from where. We’ll use it to load assets later on.
+create(data) {} — a method that gets triggered when a scene is created. In it, we’ll specify positioning for 
+such scene elements as Character and Enemies.
+update(time, delta) {} — a method that gets called with every render frame (on average, 60 times per second). 
+It’s a game loop in which redrawing, moving objects, etc. occurs.
+ */
 function preload() {
-    this.load.image('sky', 'assets/sky.png');
-    this.load.image('ground', 'assets/platform.png');
-    this.load.image('star', 'assets/star.png');
-    this.load.image('bomb', 'assets/bomb.png');
-    this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+    /*
+    The order in which game objects are displayed matches the order in which you create them. So if you wish to place a star sprite
+     above the background, you would need to ensure that it was added as an image second, after the sky image:
+    */
+    this.load.image('blackvoid','assets/blackvoid.png');
+    //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
+
+    // width and height of the frame in pixels
+    this.load.spritesheet('paddle', 'assets/paddle.png', { frameWidth: 20, frameHeight: 100 });
+    this.load.image('ball','assets/ball.png');
 }
 
 function create() {
-    //  A simple background for our game
-    this.add.image(400, 300, 'sky');
+    // draw all the game objects onto the screen
+    this.add.image(500,300,'blackvoid');
 
-    //  The platforms group contains the ground and the 2 ledges we can jump on
-    platforms = this.physics.add.staticGroup();
+    //Creates a new Arcade Sprite object with a Static body.
+    /**
+     * In Arcade Physics there are two types of physics bodies:
+     * Dynamic and Static. A dynamic body is one that can move 
+     * around via forces such as velocity or acceleration. It can
+     * bounce and collide with other objects and that collision 
+     * is influenced by the mass of the body and other elements.
+     */
 
-    //  Here we create the ground.
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+    // (used for testing physics) platform = this.physics.add.staticSprite(500,620,'rainbowvoid');
+    
+    //the creation of a Physics Sprite and the creation of some animations that it can use.
+    /* The sprite was created via the Physics Game Object Factory (this.physics.add) 
+     which means it has a Dynamic Physics body by default. */
+    playerPaddle = this.physics.add.sprite(100,300,'paddle');
+    playerPaddle.setBounce(0.8);
+    playerPaddle.setCollideWorldBounds(true);
+    /*
+    The sprite is then set to collide with the world bounds. The bounds, by default, are on the outside of the game dimensions. 
+    As we set the game to be 1000 x 600 then the player won't be able to run outside of this area. 
+    It will stop the player from being able to run off the edges of the screen or jump through the top.*/
 
-    //  Now let's create some ledges
-    platforms.create(600, 400, 'ground');
-    platforms.create(50, 250, 'ground');
-    platforms.create(750, 220, 'ground');
 
-    // The player and its settings
-    player = this.physics.add.sprite(100, 450, 'dude');
-
-    //  Player physics properties. Give the little guy a slight bounce.
-    player.setBounce(0.2);
-    player.setCollideWorldBounds(true);
-
-    //  Our player animations, turning, walking left and walking right.
+    //frameRate - The frame rate of playback, of the current animation, in frames per second. 0 by default
+    //repeat - The number of times to repeat playback of the current animation. -1 val means animation will repeat forever
     this.anims.create({
-        key: 'left',
-        frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+        key: 'up',
+        frames: this.anims.generateFrameNumbers('paddle', { start: 0}),
+        frameRate: 10, 
+        repeat: -1 
+    });
+
+    this.anims.create({
+        key: 'down',
+        frames: this.anims.generateFrameNumbers('paddle', { start: 0 }),
         frameRate: 10,
         repeat: -1
     });
 
-    this.anims.create({
-        key: 'turn',
-        frames: [{ key: 'dude', frame: 4 }],
-        frameRate: 20
-    });
-
-    this.anims.create({
-        key: 'right',
-        frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    //  Input Events
+    /**
+     * This populates the cursors object with four properties: up, down, left, right, 
+     * that are all instances of Key objects. Then all we need to do is poll these in 
+     * our update loop.
+     */
     cursors = this.input.keyboard.createCursorKeys();
 
-    //  Some stars to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
-    stars = this.physics.add.group({
-        key: 'star',
-        repeat: 11,
-        setXY: { x: 12, y: 0, stepX: 70 }
-    });
+    // collider method takes two objects and tests for collision and performs separation against them. 
+    // (used for testing physics) -> this.physics.add.collider(playerPaddle, platform);
 
-    stars.children.iterate(function (child) {
+    ball = this.physics.add.sprite(500,300,'ball');
+    ball.setVelocity(100,200);
+    ball.setGravityY(200);
+    ball.setBounce(1,1);
+    ball.setCollideWorldBounds(true);
 
-        //  Give each star a slightly different bounce
-        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-
-    });
-
-    bombs = this.physics.add.group();
-
-    //  The score
-    scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-
-    //  Collide the player and the stars with the platforms
-    this.physics.add.collider(player, platforms);
-    this.physics.add.collider(stars, platforms);
-    this.physics.add.collider(bombs, platforms);
-
-    //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-    this.physics.add.overlap(player, stars, collectStar, null, this);
-
-    this.physics.add.collider(player, bombs, hitBomb, null, this);
 }
 
 function update() {
-    if (gameOver) {
-        return;
+    /**The first thing it does is check to see if the up key is being held down. 
+     * If it is we apply a negative vertical velocity and start the 'up' running animation. 
+     * If they are holding down 'down' instead we literally do the opposite. 
+     * By clearing the velocity and setting it in this manner, every frame, 
+     * it creates a 'stop-start' style of movement.
+
+    The player sprite will move only when a key is held down and stop immediately they are not.
+    Phaser also allows you to create more complex motions, with momentum and acceleration,
+    but this gives us the effect we need for this game. 
+
+     */
+    if (cursors.up.isDown) {
+        playerPaddle.setVelocityY(-400);
+        playerPaddle.anims.play('up', true);
     }
-
-    if (cursors.left.isDown) {
-        player.setVelocityX(-160);
-
-        player.anims.play('left', true);
+    else if (cursors.down.isDown) {
+        playerPaddle.setVelocityY(400);
+        playerPaddle.anims.play('down', true);
     }
-    else if (cursors.right.isDown) {
-        player.setVelocityX(160);
-
-        player.anims.play('right', true);
+    else{
+        // without this final else block, your pong paddle will float like its underwater between the top wall and bottom wall
+        playerPaddle.setVelocityY(0);
     }
-    else {
-        player.setVelocityX(0);
-
-        player.anims.play('turn');
-    }
-
-    if (cursors.up.isDown && player.body.touching.down) {
-        player.setVelocityY(-330);
-    }
-}
-
-function collectStar(player, star) {
-    star.disableBody(true, true);
-
-    //  Add and update the score
-    score += 10;
-    scoreText.setText('Score: ' + score);
-
-    if (stars.countActive(true) === 0) {
-        //  A new batch of stars to collect
-        stars.children.iterate(function (child) {
-
-            child.enableBody(true, child.x, 0, true, true);
-
-        });
-
-        var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
-
-        var bomb = bombs.create(x, 16, 'bomb');
-        bomb.setBounce(1);
-        bomb.setCollideWorldBounds(true);
-        bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
-        bomb.allowGravity = false;
-
-    }
-}
-
-function hitBomb(player, bomb) {
-    this.physics.pause();
-
-    player.setTint(0xff0000);
-
-    player.anims.play('turn');
-
-    gameOver = true;
 }
