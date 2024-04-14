@@ -36,6 +36,7 @@ var config = {
 
 // game objects
 var playerPaddle;
+var enemyPaddle;
 // var platform; unused delete this later
 var ball;
 var game = new Phaser.Game(config);
@@ -52,17 +53,19 @@ function preload() {
     The order in which game objects are displayed matches the order in which you create them. So if you wish to place a star sprite
      above the background, you would need to ensure that it was added as an image second, after the sky image:
     */
-    this.load.image('blackvoid','assets/blackvoid.png');
+    this.load.image('spacevoid','assets/spacevoid.jpg');
     //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
     // width and height of the frame in pixels
-    this.load.spritesheet('paddle', 'assets/paddle.png', { frameWidth: 20, frameHeight: 100 });
-    this.load.image('ball','assets/ball.png');
+    this.load.spritesheet('paddle', 'assets/PaddleAlien.png', { frameWidth: 263, frameHeight: 551 });
+    this.load.image('paddleAI','assets/paddle.png');
+    this.load.image('ball1','assets/ball1.png');
+
 }
 
 function create() {
     // draw all the game objects onto the screen
-    this.add.image(500,300,'blackvoid');
+    this.add.image(500,300,'spacevoid');
 
     //Creates a new Arcade Sprite object with a Static body.
     /**
@@ -78,11 +81,23 @@ function create() {
     //the creation of a Physics Sprite and the creation of some animations that it can use.
     /* The sprite was created via the Physics Game Object Factory (this.physics.add) 
      which means it has a Dynamic Physics body by default. */
-    playerPaddle = this.physics.add.sprite(100,300,'paddle');
-    playerPaddle.setBounce(0.8);
+    playerPaddle = this.physics.add.sprite(50,300,'paddle');
+    
+    /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
+   A value of 1 means that it will retain its full velocity after the rebound. A value of 0 means it will not rebound at all. */
+    //playerPaddle.setBounce(0.8);
+
+    //setScale - Sets the scale of this Game Object (Vertical and horizontal) this is like changing the actual sprite size!
+    playerPaddle.setScale(0.3, 0.3);
+
+    /* setPushable Sets if this Body can be pushed by another Body.
+    A body that cannot be pushed will reflect back all of the velocity it is given to the colliding body. 
+    If that body is also not pushable, then the separation will be split between them evenly.
+    If you want your body to never move or seperate at all, see the setImmovable method. */
+    playerPaddle.setPushable(false);
+
     playerPaddle.setCollideWorldBounds(true);
-    /*
-    The sprite is then set to collide with the world bounds. The bounds, by default, are on the outside of the game dimensions. 
+    /* The sprite is then set to collide with the world bounds. The bounds, by default, are on the outside of the game dimensions. 
     As we set the game to be 1000 x 600 then the player won't be able to run outside of this area. 
     It will stop the player from being able to run off the edges of the screen or jump through the top.*/
 
@@ -111,13 +126,45 @@ function create() {
     cursors = this.input.keyboard.createCursorKeys();
 
 
-    // collider method takes two objects and tests for collision and performs separation against them. 
-    // (used for testing physics) -> this.physics.add.collider(playerPaddle, platform);
-    ball = this.physics.add.sprite(500,300,'ball');
-    ball.setVelocity(100,200);
-    ball.setGravityY(200);
-    ball.setBounce(1,1);
+    // ENEMY AI paddle
+    enemyPaddle = this.physics.add.sprite(900, 300, 'paddleAI');
+
+    enemyPaddle.setCollideWorldBounds(true);
+    enemyPaddle.setPushable(false);
+
+
+    /* The ball sprite was created via the Physics Game Object Factory (this.physics.add)
+     which means it has a Dynamic Physics body by default.*/
+    ball = this.physics.add.sprite(500,300,'ball1');
+
+    //setScale - Sets the scale of this Game Object (Vertical and horizontal) this is like changing the actual sprite size!
+    ball.setScale(0.5,0.5);
+
+    // setSize - Sets the internal size of this Game Object, as used for frame or physics body creation.
+    //ball.setSize(10,10);
+
+    //Sets the Body's velocity (horizontal and vertical)
+    ball.setVelocity(-400,10);
+
+    /*Set the X and Y values of the gravitational pull to act upon this Arcade Physics Game Object. 
+    Values can be positive or negative. Larger values result in a stronger effect.
+    If only one value is provided, this value will be used for both the X and Y axis. */
+    //ball.setGravityY(200);
+
+    /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
+    A value of 1 means that it will retain its full velocity after the rebound. A value of 0 means it will not rebound at all. */
+    ball.setBounce(1,1);  
+    
+    /* setCollideWorldBounds - Sets whether this Body collides with the world boundary.
+    Optionally also sets the World Bounce values. If the Body.worldBounce is null, it's set to a new Phaser.Math.Vector2 first.
+    */
     ball.setCollideWorldBounds(true);
+
+    // collider method takes two objects and tests for collision and performs separation against them.
+    this.physics.add.collider(playerPaddle, ball);
+    this.physics.add.collider(enemyPaddle, ball);
+
+
 
 }
 
@@ -145,4 +192,14 @@ function update() {
         // without this final else block, your pong paddle will float like its underwater between the top wall and bottom wall
         playerPaddle.setVelocityY(0);
     }
+
+    /* 
+    4-14-2024
+    when the ball gets close to the enemy paddle, move the enemy paddle so it can block the ball from passing it.
+    */
+    if (ball.x > 600 && ball.y < 300){
+        enemyPaddle.setVelocityY(-200);
+    }
+
 }
+
