@@ -7,7 +7,6 @@ This is the Phaser Javascript code for the Pong clone created by Carls and Radon
 by creating the main window for the game (black background at present) and one paddle.
 
 
-
 The width and height properties set the size of the canvas element that Phaser will create.
 In this case 1000 x 600 pixels. Your game world can be any size you like, 
 but this is the resolution the game will display in.
@@ -37,7 +36,7 @@ var config = {
 
 // game objects
 var playerPaddle;
-// var platform;
+// var platform; unused delete this later
 var ball;
 var game = new Phaser.Game(config);
 
@@ -111,9 +110,9 @@ function create() {
      */
     cursors = this.input.keyboard.createCursorKeys();
 
+
     // collider method takes two objects and tests for collision and performs separation against them. 
     // (used for testing physics) -> this.physics.add.collider(playerPaddle, platform);
-
     ball = this.physics.add.sprite(500,300,'ball');
     ball.setVelocity(100,200);
     ball.setGravityY(200);
