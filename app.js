@@ -2,17 +2,25 @@
 Further progress updates will be written here (much like what I did for my Frogger game)
 
 
+Worked on enemy AI paddle game logic (how it responds when the ball comes near its goal)
+and also worked on what happens to the ball once it hits the boundaries of the left or right
+walls.
+4-17-24
+
+
 4-13-24 
 This is the Phaser Javascript code for the Pong clone created by Carls and Radon. I started
-by creating the main window for the game (black background at present) and one paddle.
+by creating the main window for the game (black background at present) and one paddle.  */
 
+
+/*
 
 The width and height properties set the size of the canvas element that Phaser will create.
-In this case 1000 x 600 pixels. Your game world can be any size you like, 
+In this case 1000 x 600 pixels. Your game world can be any size you like,
 but this is the resolution the game will display in.
 
-When you set gravity: { y: 0 }, it means there is no vertical gravity acting on 
-the object. It won’t fall or rise due to gravity. This can be useful for creating 
+When you set gravity: { y: 0 }, it means there is no vertical gravity acting on
+the object. It won’t fall or rise due to gravity. This can be useful for creating
 scenarios where you want to simulate a zero-gravity environment
  or where you manually handle the object’s movement without relying on gravity.
 */
@@ -164,7 +172,13 @@ function create() {
     this.physics.add.collider(playerPaddle, ball);
     this.physics.add.collider(enemyPaddle, ball);
 
+    console.log(`The width of  ball is ${ball.width}`);
 
+
+    console.log(`The x coordinate of enemy paddle is ${enemyPaddle.x}`);
+    console.log(`The y coordinate of enemy paddle is ${enemyPaddle.y}`);
+    console.log(`The width of enemy paddle is ${enemyPaddle.width}`);
+    console.log(`The height of enemy paddle is ${enemyPaddle.height}`);
 
 }
 
@@ -189,17 +203,54 @@ function update() {
         playerPaddle.anims.play('down', true);
     }
     else{
-        // without this final else block, your pong paddle will float like its underwater between the top wall and bottom wall
+        // without this final else block, your pong paddle will float like its underwater between the top wall and bottom wall.
         playerPaddle.setVelocityY(0);
     }
 
     /* 
-    4-14-2024
-    when the ball gets close to the enemy paddle, move the enemy paddle so it can block the ball from passing it.
+    main algorithm ideas:
+    when the ball gets close to the enemy paddle, 
+    move the enemy paddle so it can block the ball from passing it via updating (or setting) its velocity.
+
+
+    Stop moving the paddle when the ball is not within its vicinity
+    by stopping its velocity.
+
     */
-    if (ball.x > 600 && ball.y < 300){
-        enemyPaddle.setVelocityY(-200);
+
+    console.log(`The x velocity of ball is ${ball.body.velocity.x.toString()} and the y velocity of ball is ${ball.body.velocity.y.toString()}`);
+
+    // ball is greater than or equal a width before the enemy paddle and a height below the enemys paddle.
+    if (ball.x >= (enemyPaddle.x - 130) && ball.y >= enemyPaddle.y + 60) {
+        // make the paddle move to collide with the ball.
+        enemyPaddle.setVelocityY(2000);
     }
+    // ball is greater than or equal a width before the enemy paddle and less than a height above the enemys paddle.
+    else if (ball.x >= (enemyPaddle.x - 130) && ball.y < enemyPaddle.y - 60) {
+        // make the paddle move to collide with the ball.
+        enemyPaddle.setVelocityY(-2000);
+    }
+    else {
+        enemyPaddle.setVelocityY(0);
+    }
+
+
+    // check if ball passes the right wall then reset its position to the center again.
+    if (ball.x >= config.width - 20)
+    {
+        ball.x = 500
+        ball.y = 300
+        ball.setVelocity(-400, 10);
+    }
+
+    // check if ball passes the left wall then reset its position to the center again.
+    if (ball.x <= 15) {
+        ball.x = 500
+        ball.y = 300
+        ball.setVelocity(-400, 10);
+    }
+
+    
 
 }
 
