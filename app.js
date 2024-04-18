@@ -1,11 +1,13 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+4-18-24
+added score counters for each player and changed player and AI collision code for when they collide with the ball.
 
+4-17-24
 Worked on enemy AI paddle game logic (how it responds when the ball comes near its goal)
 and also worked on what happens to the ball once it hits the boundaries of the left or right
-walls.
-4-17-24
+walls. Built custom functions for random number generation and what should happen when collision between ball and player occurs.
 
 
 4-13-24 
@@ -45,8 +47,15 @@ var config = {
 // game objects
 var playerPaddle;
 var enemyPaddle;
-// var platform; unused delete this later
 var ball;
+// var platform; unused delete this later
+
+var playerScore = 0;
+var playerScoreText;
+
+var enemyScore = 0;
+var enemyScoreText;
+
 var game = new Phaser.Game(config);
 
 /**  About each function:
@@ -91,6 +100,13 @@ function create() {
      which means it has a Dynamic Physics body by default. */
     playerPaddle = this.physics.add.sprite(50,300,'paddle');
     
+
+    console.log(`The height of the player paddle (internal height) ${playerPaddle.displayHeight}`);
+    console.log(`The width of the player paddle (internal width) ${playerPaddle.displayWidth}`);
+
+    // setSize - Sets the internal size of this Game Object, as used for frame or physics body creation.
+    playerPaddle.setSize(263, 551);
+
     /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
    A value of 1 means that it will retain its full velocity after the rebound. A value of 0 means it will not rebound at all. */
     //playerPaddle.setBounce(0.8);
@@ -146,13 +162,13 @@ function create() {
     ball = this.physics.add.sprite(500,300,'ball1');
 
     //setScale - Sets the scale of this Game Object (Vertical and horizontal) this is like changing the actual sprite size!
-    ball.setScale(0.5,0.5);
+    ball.setScale(0.4,0.4);
 
     // setSize - Sets the internal size of this Game Object, as used for frame or physics body creation.
     //ball.setSize(10,10);
 
     //Sets the Body's velocity (horizontal and vertical)
-    ball.setVelocity(-400,10);
+    ball.setVelocity(getRndInteger(-490, -470), getRndInteger(490, 500));
 
     /*Set the X and Y values of the gravitational pull to act upon this Arcade Physics Game Object. 
     Values can be positive or negative. Larger values result in a stronger effect.
@@ -169,18 +185,23 @@ function create() {
     ball.setCollideWorldBounds(true);
 
     // collider method takes two objects and tests for collision and performs separation against them.
-    this.physics.add.collider(playerPaddle, ball);
-    this.physics.add.collider(enemyPaddle, ball);
+    this.physics.add.collider(playerPaddle, ball,collideBallAction);
+    this.physics.add.collider(enemyPaddle, ball, enemyHitsBall);
 
-    console.log(`The width of  ball is ${ball.width}`);
-
+    console.log(`The width of ball is ${ball.width}`);
 
     console.log(`The x coordinate of enemy paddle is ${enemyPaddle.x}`);
     console.log(`The y coordinate of enemy paddle is ${enemyPaddle.y}`);
     console.log(`The width of enemy paddle is ${enemyPaddle.width}`);
     console.log(`The height of enemy paddle is ${enemyPaddle.height}`);
 
+
+    playerScoreText = this.add.text(150,0, 'Player score: 0', { fontSize: '35px', fill: "#FFF", backgroundColor:"#000"});
+    enemyScoreText = this.add.text(560, 0, 'Enemy score: 0', { fontSize: '35px', fill: "#FFF", backgroundColor: "#000" });
+
+
 }
+
 
 function update() {
     /**The first thing it does is check to see if the up key is being held down. 
@@ -221,36 +242,62 @@ function update() {
     console.log(`The x velocity of ball is ${ball.body.velocity.x.toString()} and the y velocity of ball is ${ball.body.velocity.y.toString()}`);
 
     // ball is greater than or equal a width before the enemy paddle and a height below the enemys paddle.
-    if (ball.x >= (enemyPaddle.x - 130) && ball.y >= enemyPaddle.y + 60) {
+    if (ball.x >= (enemyPaddle.x - 250) && ball.y >= enemyPaddle.y + 60) {
         // make the paddle move to collide with the ball.
-        enemyPaddle.setVelocityY(2000);
+        enemyPaddle.setVelocityY(600);
     }
     // ball is greater than or equal a width before the enemy paddle and less than a height above the enemys paddle.
-    else if (ball.x >= (enemyPaddle.x - 130) && ball.y < enemyPaddle.y - 60) {
+    else if (ball.x >= (enemyPaddle.x - 250) && ball.y < enemyPaddle.y - 60) {
         // make the paddle move to collide with the ball.
-        enemyPaddle.setVelocityY(-2000);
+        enemyPaddle.setVelocityY(-600);
     }
     else {
         enemyPaddle.setVelocityY(0);
     }
 
 
-    // check if ball passes the right wall then reset its position to the center again.
+    // check if ball passes the right wall then update players score and reset balls position to the center again.
     if (ball.x >= config.width - 20)
     {
-        ball.x = 500
-        ball.y = 300
-        ball.setVelocity(-400, 10);
+        ball.x = config.width / 2
+        ball.y = config.height / 2
+        ball.setVelocity(getRndInteger(-490, -470), getRndInteger(490, 500));
+        playerScore++;
+        playerScoreText.setText(`Player score: ${playerScore}`);
     }
 
-    // check if ball passes the left wall then reset its position to the center again.
+    // check if ball passes the left wall then update enemys score and reset its position to the center again.
     if (ball.x <= 15) {
-        ball.x = 500
-        ball.y = 300
-        ball.setVelocity(-400, 10);
+        ball.x = config.width / 2
+        ball.y = config.height / 2
+        ball.setVelocity(getRndInteger(470, 490), getRndInteger(490, 500));
+        enemyScore++;
+        enemyScoreText.setText(`Enemy score: ${enemyScore}`);
     }
+}
 
-    
+/*
+This custom function returns a random number in a custom range that is inclusive of the min and max.
+*/
+function getRndInteger(minNum, maxNum) {
+    return Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+}
+
+/*
+This custom function will cause the velocity of the ball to change upon collision with the player paddle.
+*/
+function collideBallAction(){
+    ball.setVelocity(getRndInteger(470, 490), getRndInteger(490, 550));
+    /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
+A value of 1 means that it will retain its full velocity after the rebound. A value of 0 means it will not rebound at all. */
+    //ball.setBounce(1, 1);
 
 }
 
+/*
+This custom function will cause the velocity of the ball to change upon collision with the enemy paddle.
+*/
+function enemyHitsBall(){
+    ball.setVelocity(getRndInteger(-490, -470), getRndInteger(490, 550));
+
+}
