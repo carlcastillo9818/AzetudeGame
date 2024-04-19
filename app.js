@@ -1,6 +1,10 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+
+4-19-24
+
+
 4-18-24
 added score counters for each player and changed player and AI collision code for when they collide with the ball.
 
@@ -76,7 +80,7 @@ function preload() {
     // width and height of the frame in pixels
     this.load.spritesheet('paddle', 'assets/PaddleAlien.png', { frameWidth: 263, frameHeight: 551 });
     this.load.image('paddleAI','assets/paddle.png');
-    this.load.image('ball1','assets/ball1.png');
+    this.load.image('Ball1','assets/BlueBall.png');
 
 }
 
