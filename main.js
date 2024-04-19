@@ -3,7 +3,10 @@ Further progress updates will be written here (much like what I did for my Frogg
 
 
 4-19-24
-Added custom background images, custom paddles sprites, added copyright-free music audio, 
+Added custom background images, custom paddles sprites, added copyright-free music audio, added
+custom font for score counters displays. 
+
+Music by <a href="https://pixabay.com/users/moodmode-33139253/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=158814">moodmode</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=158814">Pixabay</a>
 
 4-18-24
 added score counters for each player and changed player and AI collision code for when they collide with the ball.
@@ -60,6 +63,8 @@ var playerScoreText;
 var enemyScore = 0;
 var enemyScoreText;
 
+
+
 var game = new Phaser.Game(config);
 
 /**  About each function:
@@ -74,6 +79,7 @@ function preload() {
     The order in which game objects are displayed matches the order in which you create them. So if you wish to place a star sprite
      above the background, you would need to ensure that it was added as an image second, after the sky image:
     */
+    this.load.audio('ingameMUSIC','assets/audio/ingameMUSIC.mp3');
     this.load.image('spacevoid','assets/backgrounds/Azetude-GameplayBackground2.jpeg');
     //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
@@ -85,6 +91,10 @@ function preload() {
 }
 
 function create() {
+    // activate the mp3 music sound for the main game scene
+    const music = this.sound.add('ingameMUSIC');
+    music.play();
+
     // draw all the game objects onto the screen
     this.add.image(500,300,'spacevoid');
 
@@ -201,8 +211,8 @@ function create() {
     console.log(`The height of enemy paddle is ${enemyPaddle.height}`);
 
 
-    playerScoreText = this.add.text(150, 0, `player score: ${playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:300});
-    enemyScoreText = this.add.text(560, 0, `enemy score: ${enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000" });
+    playerScoreText = this.add.text(150, 0, `player score: ${playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:330});
+    enemyScoreText = this.add.text(560, 0, `enemy score: ${enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:330});
 
 
 }
@@ -292,7 +302,7 @@ function getRndInteger(minNum, maxNum) {
 This custom function will cause the velocity of the ball to change upon collision with the player paddle.
 */
 function collideBallAction(){
-    ball.setVelocity(getRndInteger(470, 490), getRndInteger(490, 550));
+    ball.setVelocity(getRndInteger(470, 690), getRndInteger(-490, 750));
     /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
 A value of 1 means that it will retain its full velocity after the rebound. A value of 0 means it will not rebound at all. */
     //ball.setBounce(1, 1);
@@ -303,6 +313,6 @@ A value of 1 means that it will retain its full velocity after the rebound. A va
 This custom function will cause the velocity of the ball to change upon collision with the enemy paddle.
 */
 function enemyHitsBall(){
-    ball.setVelocity(getRndInteger(-490, -470), getRndInteger(490, 550));
+    ball.setVelocity(getRndInteger(-490, -690), getRndInteger(-490, 550));
 
 }
