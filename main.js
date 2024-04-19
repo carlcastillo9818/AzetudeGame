@@ -3,7 +3,7 @@ Further progress updates will be written here (much like what I did for my Frogg
 
 
 4-19-24
-
+Added custom background images, custom paddles sprites, added copyright-free music audio, 
 
 4-18-24
 added score counters for each player and changed player and AI collision code for when they collide with the ball.
@@ -74,13 +74,13 @@ function preload() {
     The order in which game objects are displayed matches the order in which you create them. So if you wish to place a star sprite
      above the background, you would need to ensure that it was added as an image second, after the sky image:
     */
-    this.load.image('spacevoid','assets/spacevoid.jpg');
+    this.load.image('spacevoid','assets/backgrounds/Azetude-GameplayBackground2.jpeg');
     //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
     // width and height of the frame in pixels
-    this.load.spritesheet('paddle', 'assets/PaddleAlien.png', { frameWidth: 263, frameHeight: 551 });
-    this.load.image('paddleAI','assets/paddle.png');
-    this.load.image('Ball1','assets/BlueBall.png');
+    this.load.spritesheet('paddle', 'assets/sprites/FirstPaddle.png', { frameWidth: 263, frameHeight: 551 });
+    this.load.image('paddleAI','assets/sprites/SecondPaddle.png');
+    this.load.image('BlueBall','assets/sprites/BlueBall.png');
 
 }
 
@@ -89,6 +89,7 @@ function create() {
     this.add.image(500,300,'spacevoid');
 
     //Creates a new Arcade Sprite object with a Static body.
+
     /**
      * In Arcade Physics there are two types of physics bodies:
      * Dynamic and Static. A dynamic body is one that can move 
@@ -155,18 +156,18 @@ function create() {
 
 
     // ENEMY AI paddle
-    enemyPaddle = this.physics.add.sprite(900, 300, 'paddleAI');
-
+    enemyPaddle = this.physics.add.sprite(config.width - 50, 300, 'paddleAI');
+    enemyPaddle.setScale(0.3, 0.3);
     enemyPaddle.setCollideWorldBounds(true);
     enemyPaddle.setPushable(false);
 
 
     /* The ball sprite was created via the Physics Game Object Factory (this.physics.add)
      which means it has a Dynamic Physics body by default.*/
-    ball = this.physics.add.sprite(500,300,'ball1');
+    ball = this.physics.add.sprite(500,300,'BlueBall');
 
     //setScale - Sets the scale of this Game Object (Vertical and horizontal) this is like changing the actual sprite size!
-    ball.setScale(0.4,0.4);
+    ball.setScale(0.2,0.2);
 
     // setSize - Sets the internal size of this Game Object, as used for frame or physics body creation.
     //ball.setSize(10,10);
@@ -200,8 +201,8 @@ function create() {
     console.log(`The height of enemy paddle is ${enemyPaddle.height}`);
 
 
-    playerScoreText = this.add.text(150,0, 'Player score: 0', { fontSize: '35px', fill: "#FFF", backgroundColor:"#000"});
-    enemyScoreText = this.add.text(560, 0, 'Enemy score: 0', { fontSize: '35px', fill: "#FFF", backgroundColor: "#000" });
+    playerScoreText = this.add.text(150, 0, `player score: ${playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:300});
+    enemyScoreText = this.add.text(560, 0, `enemy score: ${enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000" });
 
 
 }
@@ -267,7 +268,7 @@ function update() {
         ball.y = config.height / 2
         ball.setVelocity(getRndInteger(-490, -470), getRndInteger(490, 500));
         playerScore++;
-        playerScoreText.setText(`Player score: ${playerScore}`);
+        playerScoreText.setText(`player score: ${playerScore}`);
     }
 
     // check if ball passes the left wall then update enemys score and reset its position to the center again.
@@ -276,7 +277,7 @@ function update() {
         ball.y = config.height / 2
         ball.setVelocity(getRndInteger(470, 490), getRndInteger(490, 500));
         enemyScore++;
-        enemyScoreText.setText(`Enemy score: ${enemyScore}`);
+        enemyScoreText.setText(`enemy score: ${enemyScore}`);
     }
 }
 
