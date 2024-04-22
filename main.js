@@ -1,12 +1,14 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+4-22-24
+tried new music tracks for the game and adjusted physics collision between paddes and ball.
+keep working on collision code...
+
 
 4-19-24
 Added custom background images, custom paddles sprites, added copyright-free music audio, added
 custom font for score counters displays. 
-
-Music by <a href="https://pixabay.com/users/moodmode-33139253/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=158814">moodmode</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=158814">Pixabay</a>
 
 4-18-24
 added score counters for each player and changed player and AI collision code for when they collide with the ball.
@@ -79,7 +81,7 @@ function preload() {
     The order in which game objects are displayed matches the order in which you create them. So if you wish to place a star sprite
      above the background, you would need to ensure that it was added as an image second, after the sky image:
     */
-    this.load.audio('ingameMUSIC','assets/audio/ingameMUSIC.mp3');
+    this.load.audio('ingameMUSIC','assets/audio/space-120280.mp3');
     this.load.image('spacevoid','assets/backgrounds/Azetude-GameplayBackground2.jpeg');
     //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
@@ -183,7 +185,7 @@ function create() {
     //ball.setSize(10,10);
 
     //Sets the Body's velocity (horizontal and vertical)
-    ball.setVelocity(getRndInteger(-490, -470), getRndInteger(490, 500));
+    ball.setVelocity(getRndInteger(-490, -470), getRndInteger(0,0));
 
     /*Set the X and Y values of the gravitational pull to act upon this Arcade Physics Game Object. 
     Values can be positive or negative. Larger values result in a stronger effect.
@@ -210,10 +212,8 @@ function create() {
     console.log(`The width of enemy paddle is ${enemyPaddle.width}`);
     console.log(`The height of enemy paddle is ${enemyPaddle.height}`);
 
-
     playerScoreText = this.add.text(150, 0, `player score: ${playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:330});
     enemyScoreText = this.add.text(560, 0, `enemy score: ${enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:330});
-
 
 }
 
@@ -243,16 +243,12 @@ function update() {
         playerPaddle.setVelocityY(0);
     }
 
-    /* 
-    main algorithm ideas:
+    /* main algorithm ideas:
     when the ball gets close to the enemy paddle, 
     move the enemy paddle so it can block the ball from passing it via updating (or setting) its velocity.
 
-
     Stop moving the paddle when the ball is not within its vicinity
-    by stopping its velocity.
-
-    */
+    by stopping its velocity. */
 
     console.log(`The x velocity of ball is ${ball.body.velocity.x.toString()} and the y velocity of ball is ${ball.body.velocity.y.toString()}`);
 
@@ -302,7 +298,27 @@ function getRndInteger(minNum, maxNum) {
 This custom function will cause the velocity of the ball to change upon collision with the player paddle.
 */
 function collideBallAction(){
-    ball.setVelocity(getRndInteger(470, 690), getRndInteger(-490, 750));
+
+    /*
+        if the ball hits the upper portion of the paddle, then it should bounce at a 45-50 degree angle.
+        if the ball hits the lower portion of the paddle, then it should bounce at a negative 45-50 degree angle.
+    */
+    console.log(`Ball y pos = ${ball.y}`);
+    console.log(`playerPaddle height = ${playerPaddle.height}`);
+    console.log(`playerPaddle width = ${playerPaddle.width}`);
+
+    // if the ball hits the middle portion of the paddle then it shoud bounce back at a 0-1 degree angle
+    if (ball.y == (playerPaddle.height / 2)){
+        console.log("ball hit middle portion of paddle");
+        ball.setVelocity(getRndInteger(470, 690), getRndInteger(0, 0));
+    }
+    else if (ball.y > (playerPaddle.height / 2)){
+        console.log("ball hit lower portion of paddle");
+    }
+    //console.log("ball hit upper portion of paddle");
+    //console.log("ball hit lower portion of paddle");
+
+
     /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
 A value of 1 means that it will retain its full velocity after the rebound. A value of 0 means it will not rebound at all. */
     //ball.setBounce(1, 1);
