@@ -1,6 +1,9 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+4-23-24 further optimized the collision and velocity upon the ball hitting the player or enemy paddles,
+now the ball will take into account the upper, center, and lower portions of each paddle. Still have to improve this.
+
 4-22-24
 tried new music tracks for the game and adjusted physics collision between paddes and ball.
 keep working on collision code...
@@ -65,6 +68,14 @@ var playerScoreText;
 var enemyScore = 0;
 var enemyScoreText;
 
+/* 4-23-24 consider using these variables in the UPDATE method and create separate getRndInteger variables in the collision methods
+Why? because that way the X velocity for the ball upon hitting the player or enemy paddle will always change slighty
+instead of staying at a fixed number (Despite using random) */
+var xVelocityBallPlayer = getRndInteger(700, 800);
+var yVelocityBallPlayerList = [getRndInteger(0, 0), getRndInteger(-300, -400), getRndInteger(300, 400)];
+
+var xVelocityBallEnemy = getRndInteger(-700, -800);
+var yVelocityBallEnemyList = [getRndInteger(0, 0), getRndInteger(-300, -400), getRndInteger(300, 400)];
 
 
 var game = new Phaser.Game(config);
@@ -122,7 +133,7 @@ function create() {
     console.log(`The width of the player paddle (internal width) ${playerPaddle.displayWidth}`);
 
     // setSize - Sets the internal size of this Game Object, as used for frame or physics body creation.
-    playerPaddle.setSize(263, 551);
+    playerPaddle.setSize(263, 420);
 
     /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
    A value of 1 means that it will retain its full velocity after the rebound. A value of 0 means it will not rebound at all. */
@@ -185,7 +196,7 @@ function create() {
     //ball.setSize(10,10);
 
     //Sets the Body's velocity (horizontal and vertical)
-    ball.setVelocity(getRndInteger(-490, -470), getRndInteger(0,0));
+    ball.setVelocity(xVelocityBallEnemy,yVelocityBallEnemyList[0]);
 
     /*Set the X and Y values of the gravitational pull to act upon this Arcade Physics Game Object. 
     Values can be positive or negative. Larger values result in a stronger effect.
@@ -202,7 +213,7 @@ function create() {
     ball.setCollideWorldBounds(true);
 
     // collider method takes two objects and tests for collision and performs separation against them.
-    this.physics.add.collider(playerPaddle, ball,collideBallAction);
+    this.physics.add.collider(playerPaddle, ball,playerHitsBall);
     this.physics.add.collider(enemyPaddle, ball, enemyHitsBall);
 
     console.log(`The width of ball is ${ball.width}`);
@@ -212,8 +223,8 @@ function create() {
     console.log(`The width of enemy paddle is ${enemyPaddle.width}`);
     console.log(`The height of enemy paddle is ${enemyPaddle.height}`);
 
-    playerScoreText = this.add.text(150, 0, `player score: ${playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:330});
-    enemyScoreText = this.add.text(560, 0, `enemy score: ${enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", backgroundColor: "#000", fixedWidth:330});
+    playerScoreText = this.add.text(340, 0, `player score: ${playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", fixedWidth:330});
+    enemyScoreText = this.add.text(505, 0, `enemy score: ${enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", fixedWidth:330});
 
 }
 
@@ -253,14 +264,14 @@ function update() {
     console.log(`The x velocity of ball is ${ball.body.velocity.x.toString()} and the y velocity of ball is ${ball.body.velocity.y.toString()}`);
 
     // ball is greater than or equal a width before the enemy paddle and a height below the enemys paddle.
-    if (ball.x >= (enemyPaddle.x - 250) && ball.y >= enemyPaddle.y + 60) {
+    if (ball.x >= (enemyPaddle.x - 350) && ball.y >= enemyPaddle.y + 60) {
         // make the paddle move to collide with the ball.
-        enemyPaddle.setVelocityY(600);
+        enemyPaddle.setVelocityY(400);
     }
     // ball is greater than or equal a width before the enemy paddle and less than a height above the enemys paddle.
-    else if (ball.x >= (enemyPaddle.x - 250) && ball.y < enemyPaddle.y - 60) {
+    else if (ball.x >= (enemyPaddle.x - 350) && ball.y < enemyPaddle.y - 60) {
         // make the paddle move to collide with the ball.
-        enemyPaddle.setVelocityY(-600);
+        enemyPaddle.setVelocityY(-400);
     }
     else {
         enemyPaddle.setVelocityY(0);
@@ -272,7 +283,7 @@ function update() {
     {
         ball.x = config.width / 2
         ball.y = config.height / 2
-        ball.setVelocity(getRndInteger(-490, -470), getRndInteger(490, 500));
+        ball.setVelocity(xVelocityBallEnemy,yVelocityBallEnemyList[2]);
         playerScore++;
         playerScoreText.setText(`player score: ${playerScore}`);
     }
@@ -281,7 +292,7 @@ function update() {
     if (ball.x <= 15) {
         ball.x = config.width / 2
         ball.y = config.height / 2
-        ball.setVelocity(getRndInteger(470, 490), getRndInteger(490, 500));
+        ball.setVelocity(xVelocityBallPlayer, yVelocityBallPlayerList[2]);
         enemyScore++;
         enemyScoreText.setText(`enemy score: ${enemyScore}`);
     }
@@ -296,27 +307,29 @@ function getRndInteger(minNum, maxNum) {
 
 /*
 This custom function will cause the velocity of the ball to change upon collision with the player paddle.
+The balls velocity will vary depending if the ball collides with the upper, center, or lower portion of the
+players paddle.
 */
-function collideBallAction(){
-
-    /*
-        if the ball hits the upper portion of the paddle, then it should bounce at a 45-50 degree angle.
-        if the ball hits the lower portion of the paddle, then it should bounce at a negative 45-50 degree angle.
-    */
+function playerHitsBall(){
     console.log(`Ball y pos = ${ball.y}`);
-    console.log(`playerPaddle height = ${playerPaddle.height}`);
-    console.log(`playerPaddle width = ${playerPaddle.width}`);
+    console.log(`playerPaddle y pos = ${playerPaddle.y}`);
+    var xVelocityBall = getRndInteger(700, 800);
 
-    // if the ball hits the middle portion of the paddle then it shoud bounce back at a 0-1 degree angle
-    if (ball.y == (playerPaddle.height / 2)){
-        console.log("ball hit middle portion of paddle");
-        ball.setVelocity(getRndInteger(470, 690), getRndInteger(0, 0));
+    // when the ball hits the middle portion of the paddle then it shoud bounce back at a 0-1 degree angle.
+    if ((ball.y == playerPaddle.y) || (ball.y >= (playerPaddle.y - 15) && ball.y <= (playerPaddle.y + 15))){
+        console.log("ball hit middle portion of player paddle");
+        ball.setVelocity(xVelocityBall, yVelocityBallPlayerList[0]);
     }
-    else if (ball.y > (playerPaddle.height / 2)){
-        console.log("ball hit lower portion of paddle");
+    else if (ball.y < playerPaddle.y){
+        // when the ball hits the upper portion of the paddle, then it should bounce at a 45 - 50 degree angle.
+        console.log("ball hit upper portion of player paddle");
+        ball.setVelocity(xVelocityBallPlayer, yVelocityBallPlayerList[1]);
     }
-    //console.log("ball hit upper portion of paddle");
-    //console.log("ball hit lower portion of paddle");
+    else{
+        // when the ball hits the lower portion of the paddle, then it should bounce at a negative 45 - 50 degree angle.
+        console.log("ball hit lower portion of player paddle");
+        ball.setVelocity(xVelocityBallPlayer, yVelocityBallPlayerList[2]);
+    }
 
 
     /* setBounce - Bounce is the amount of restitution, or elasticity, the body has when it collides with another object.
@@ -327,8 +340,26 @@ A value of 1 means that it will retain its full velocity after the rebound. A va
 
 /*
 This custom function will cause the velocity of the ball to change upon collision with the enemy paddle.
+The balls velocity will vary depending if the ball collides with the upper, center, or lower portion of the
+enemy paddle.
 */
 function enemyHitsBall(){
-    ball.setVelocity(getRndInteger(-490, -690), getRndInteger(-490, 550));
+    console.log(`Ball y pos = ${ball.y}`);
+    console.log(`enemyPaddle y pos = ${enemyPaddle.y}`);
 
+    // when the ball hits the middle portion of the paddle then it shoud bounce back at a 0-1 degree angle.
+    if (ball.y == enemyPaddle.y) {
+        console.log("ball hit middle portion of enemy paddle");
+        ball.setVelocity(xVelocityBallEnemy,yVelocityBallEnemyList[0]);
+    }
+    else if (ball.y < enemyPaddle.y) {
+        // when the ball hits the upper portion of the paddle, then it should bounce at a 45 - 50 degree angle.
+        console.log("ball hit upper portion of enemy paddle");
+        ball.setVelocity(xVelocityBallEnemy, yVelocityBallEnemyList[1]);
+    }
+    else {
+        // when the ball hits the lower portion of the paddle, then it should bounce at a negative 45 - 50 degree angle.
+        console.log("ball hit lower portion of enemy paddle");
+        ball.setVelocity(xVelocityBallEnemy, yVelocityBallEnemyList[2]);
+    }
 }
