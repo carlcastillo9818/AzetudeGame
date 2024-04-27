@@ -63,7 +63,7 @@ class Preloader extends Phaser.Scene {
     create() {
         console.log('Preloader.create');
 
-        this.scene.start('Title');
+        this.scene.start('Game');
     }
 }
 
@@ -84,14 +84,11 @@ class Title extends Phaser.Scene {
 }
 
 class Game extends Phaser.Scene {
+    
     constructor() {
         super('Game');
         // game objects
-        this.playerPaddle;
-        this.enemyPaddle;
-        this.ball;
         // var platform; unused delete this later
-
         this.playerScore = 0;
         this.playerScoreText;
 
@@ -182,7 +179,7 @@ class Game extends Phaser.Scene {
          * that are all instances of Key objects. Then all we need to do is poll these in 
          * our update loop.
          */
-        cursors = this.input.keyboard.createCursorKeys();
+        this.cursors = this.input.keyboard.createCursorKeys();
 
 
         // ENEMY AI paddle
@@ -220,15 +217,15 @@ class Game extends Phaser.Scene {
         this.ball.setCollideWorldBounds(true);
 
         // collider method takes two objects and tests for collision and performs separation against them.
-        this.physics.add.collider(playerPaddle, ball, playerHitsBall);
-        this.physics.add.collider(enemyPaddle, ball, enemyHitsBall);
+        this.physics.add.collider(this.playerPaddle, this.ball, this.playerHitsBall);
+        this.physics.add.collider(this.enemyPaddle, this.ball, this.enemyHitsBall);
 
-        console.log(`The width of ball is ${ball.width}`);
+        console.log(`The width of ball is ${this.ball.width}`);
 
-        console.log(`The x coordinate of enemy paddle is ${enemyPaddle.x}`);
-        console.log(`The y coordinate of enemy paddle is ${enemyPaddle.y}`);
-        console.log(`The width of enemy paddle is ${enemyPaddle.width}`);
-        console.log(`The height of enemy paddle is ${enemyPaddle.height}`);
+        console.log(`The x coordinate of enemy paddle is ${this.enemyPaddle.x}`);
+        console.log(`The y coordinate of enemy paddle is ${this.enemyPaddle.y}`);
+        console.log(`The width of enemy paddle is ${this.enemyPaddle.width}`);
+        console.log(`The height of enemy paddle is ${this.enemyPaddle.height}`);
 
         this.playerScoreText = this.add.text(340, 0, `player score: ${this.playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", fixedWidth: 330 });
         this.enemyScoreText = this.add.text(505, 0, `enemy score: ${this.enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", fixedWidth: 330 });
@@ -257,11 +254,11 @@ class Game extends Phaser.Scene {
         but this gives us the effect we need for this game. 
 
         */
-        if (cursors.up.isDown) {
+        if (this.cursors.up.isDown) {
             this.playerPaddle.setVelocityY(-500);
             this.playerPaddle.anims.play('up', true);
         }
-        else if (cursors.down.isDown) {
+        else if (this.cursors.down.isDown) {
             this.playerPaddle.setVelocityY(500);
             this.playerPaddle.anims.play('down', true);
         }
@@ -316,7 +313,7 @@ class Game extends Phaser.Scene {
     /*
     This custom function returns a random number in a custom range that is inclusive of the min and max.
     */
-    this.getRndInteger(minNum, maxNum) {
+    getRndInteger(minNum, maxNum) {
         return Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
     }
 
@@ -380,4 +377,27 @@ class Game extends Phaser.Scene {
     }
 }
 
-
+/*    
+The width and height properties set the size of the canvas element that Phaser will create.
+In this case 1000 x 600 pixels. Your game world can be any size you like,
+but this is the resolution the game will display in.
+ 
+When you set gravity: { y: 0 }, it means there is no vertical gravity acting on
+the object. It won’t fall or rise due to gravity. This can be useful for creating
+scenarios where you want to simulate a zero-gravity environment
+or where you manually handle the object’s movement without relying on gravity.
+*/
+const config = {
+    type: Phaser.AUTO,
+    width: 1000,
+    height: 600,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
+        }
+    },
+    scene: [Boot, Preloader, Game]
+};
+const game = new Phaser.Game(config);
