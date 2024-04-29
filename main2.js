@@ -1,10 +1,10 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
-4-29-24 Managed to translate the main game codes paradigm over to OOP style and implemented a title screen
+4-29-24 Managed to translate the main game codes paradigm over to OOP style and implemented a title menu scene
 which preceeds the game. Added a button in the title screen to enable the user to go to the game when they press the button.
 Downloaded more asset images from the Google Drive folder made by Rania, she also resized the images to fit
-the dimensions of the game properly, thank you bby girl.
+the dimensions of the game properly, thank you bby girl. Added option scene, credit scene, and high score scene later in the day.
 
 
 4-28 and 4-27 
@@ -44,11 +44,18 @@ class ButtonComponent extends Phaser.GameObjects.Container {
         this.config = config;
         this.spawnButton();
     }
+
     spawnButton() {
         this.x = this.config.x;
         this.y = this.config.y;
-        this.setScale(0.4,0.4);
-        
+        this.scale = this.config.scale;
+
+        // this is for the title screen and option screen buttons
+        //this.setScale(0.3,0.3);
+
+        // this is for the game scene
+        //this.setScale(0.2,0.2);
+
         this.background = this.scene.add.image(0, 0, this.config.background);
 
         this.background.setInteractive();
@@ -139,9 +146,10 @@ class Preloader extends Phaser.Scene {
          above the background, you would need to ensure that it was added as an image second, after the sky image:
         */
         this.load.audio('ingameMUSIC', 'assets/audio/space-120280.mp3');
-        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png')
-        this.load.image('playButton', 'assets/buttons/Play Button.png')
-
+        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
+        this.load.image('playButton', 'assets/buttons/Play Button.png');
+        this.load.image('optionButton', 'assets/buttons/Option Button.png');
+        this.load.image('creditsButton', 'assets/buttons/Credits Button.png');
         this.load.image('spacevoid', 'assets/backgrounds/Azetude- Gameplay Background.png');
         //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
@@ -149,7 +157,8 @@ class Preloader extends Phaser.Scene {
         this.load.spritesheet('paddle', 'assets/sprites/FirstPaddle.png', { frameWidth: 263, frameHeight: 551 });
         this.load.image('paddleAI', 'assets/sprites/SecondPaddle.png');
         this.load.image('BlueBall', 'assets/sprites/BlueBall.png');
-        
+        this.load.image('goBackButton', 'assets/buttons/back button.png');
+
     }
 
     create() {
@@ -175,16 +184,97 @@ class Title extends Phaser.Scene {
 
         /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
         if they click on the button and not anything else.*/
-        const button = new ButtonComponent({
+        const playButton = new ButtonComponent({
             scene: this,
-            x: 500, y: 350,
+            x: 500, y: 320,
+            scale:0.3,
             background: 'playButton',
             onPush: this.goToGameScene.bind(this)
         });
+
+        const optionButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 420,
+            scale: 0.3,
+            background: 'optionButton',
+            onPush: this.goToOptionScene.bind(this)
+        });
+
+        const creditButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 520,
+            scale: 0.3,
+            background: 'creditsButton',
+            onPush: this.goToCreditScene.bind(this)
+        });
     }
 
+    // This method will allow the button pressed earlier to proceed to the MAIN game scene.
     goToGameScene() {
         this.scene.start('Game');
+    }
+
+    // This method will allow the button pressed earlier to proceed to the option scene.
+    goToOptionScene() {
+        this.scene.start('Option');
+    }
+
+    // This method will allow the button pressed earlier to proceed to the credits scene.
+    goToCreditScene() {
+        this.scene.start('Credits');
+    }
+
+}
+
+class Option extends Phaser.Scene{
+    constructor(){
+        super('Option');
+    }
+
+    create(){
+        console.log('Option.create');
+        this.add.image(500, 300, "menuBG");
+        
+        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
+        if they click on the button and not anything else.*/
+        const goBackButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 350,
+            scale: 0.3,
+            background: 'goBackButton',
+            onPush: this.goToTitleScene.bind(this)
+        });
+    }
+
+    // This method will allow the button pressed earlier to proceed to the MAIN game scene.
+    goToTitleScene() {
+        this.scene.start('Title');
+    }
+}
+
+class Credits extends Phaser.Scene {
+    constructor() {
+        super('Credits');
+    }
+
+    create() {
+        console.log('Credits.create');
+        this.add.image(500, 300, "menuBG");
+
+        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
+        if they click on the button and not anything else.*/
+        const goBackButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 350,
+            scale: 0.3,
+            background: 'goBackButton',
+            onPush: this.goToTitleScene.bind(this)
+        });
+    }
+
+    // This method will allow the button pressed earlier to proceed to the MAIN game scene.
+    goToTitleScene() {
+        this.scene.start('Title');
     }
 }
 
@@ -194,10 +284,7 @@ class Game extends Phaser.Scene {
         super('Game');
 
         this.playerScore = 0;
-
         this.enemyScore = 0;
-
-
         /* 4-23-24 consider using these variables in the UPDATE method and create separate this.getRndInteger variables in the collision methods
         Why? because that way the X velocity for the ball upon hitting the player or enemy paddle will always change slighty
         instead of staying at a fixed number (Despite using random) */
@@ -209,11 +296,19 @@ class Game extends Phaser.Scene {
 
     }
 
+    /**  About each function:
+     * preload() {} — a method that defines what we need to load before the scene and from where. We’ll use it to load assets later on.
+    create(data) {} — a method that gets triggered when a scene is created. In it, we’ll specify positioning for 
+    such scene elements as Character and Enemies.
+    update(time, delta) {} — a method that gets called with every render frame (on average, 60 times per second). 
+    It’s a game loop in which redrawing, moving objects, etc. occurs.
+    */
+
     create() {
         console.log('Game.create');
         // activate the mp3 music sound for the main game scene
-        const music = this.sound.add('ingameMUSIC');
-        music.play();
+        this.music = this.sound.add('ingameMUSIC');
+        this.music.play();
 
         // draw all the game objects onto the screen
         this.add.image(500, 300, 'spacevoid');
@@ -320,6 +415,8 @@ class Game extends Phaser.Scene {
         this.ball.setCollideWorldBounds(true);
 
         // collider method takes two objects and tests for collision and performs separation against them.
+        // IMPORTANT NOTE 4-29-24 -> Make sure to use arrow notation when providing a method for the colliders third arg,
+        // this is needed when doing everything in a class oriented approach.
         this.physics.add.collider(this.playerPaddle, this.ball, () => this.playerHitsBall());
         this.physics.add.collider(this.enemyPaddle, this.ball, () => this.enemyHitsBall());
 
@@ -333,17 +430,18 @@ class Game extends Phaser.Scene {
         this.playerScoreText = this.add.text(150, 0, `player score: ${this.playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#7DDA58", fixedWidth: 330 });
         this.enemyScoreText = this.add.text(505, 0, `enemy score: ${this.enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#7DDA58", fixedWidth: 330 });
 
+        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
+if they click on the button and not anything else.*/
+        const goBackButton = new ButtonComponent({
+            scene: this,
+            x: 55, y: 35,
+            scale: 0.2,
+            background: 'goBackButton',
+            onPush: this.goToTitleScene.bind(this)
+        });
     }
 
 
-
-    /**  About each function:
-     * preload() {} — a method that defines what we need to load before the scene and from where. We’ll use it to load assets later on.
-    create(data) {} — a method that gets triggered when a scene is created. In it, we’ll specify positioning for 
-    such scene elements as Character and Enemies.
-    update(time, delta) {} — a method that gets called with every render frame (on average, 60 times per second). 
-    It’s a game loop in which redrawing, moving objects, etc. occurs.
-    */
 
     update() {
         /**The first thing it does is check to see if the up key is being held down. 
@@ -376,10 +474,6 @@ class Game extends Phaser.Scene {
 
         Stop moving the paddle when the ball is not within its vicinity
         by stopping its velocity. */
-        console.log("hello");
-        console.log(this.ball.body.velocity.x);
-        console.log("bye");
-
         console.log(`The x velocity of ball is ${this.ball.body.velocity.x} and the y velocity of ball is ${this.ball.body.velocity.y}`);
 
         // ball is greater than or equal a width before the enemy paddle and a height below the enemys paddle.
@@ -413,6 +507,12 @@ class Game extends Phaser.Scene {
             this.ball.setVelocity(this.xVelocityBallPlayer, this.yVelocityBallPlayerList[2]);
             this.enemyScore++;
             this.enemyScoreText.setText(`enemy score: ${this.enemyScore}`);
+        }
+
+        // check when player or enemy reaches the maximum score and go to the high score screen
+        if (this.playerScore == 1 || this.enemyScore == 1)
+        {
+            this.goToHighScoreScene();
         }
     }
 
@@ -481,8 +581,52 @@ class Game extends Phaser.Scene {
             this.ball.setVelocity(this.xVelocityBallEnemy, this.yVelocityBallEnemyList[2]);
         }
     }
+
+    // This method will allow the button component to proceed to the title scene, reset scores, and stop the music
+    goToTitleScene() {
+        console.log('Going from Game to Title scene');
+        this.playerScore = 0;
+        this.enemyScore = 0;
+        this.music.stop();
+        this.scene.start('Title');
+    }
+
+    // This method will allow the button component to proceed to the high scene, reset scores, and stop the music
+    goToHighScoreScene(){
+        console.log('Going from Game to High Score scene');
+        this.playerScore = 0;
+        this.enemyScore = 0;
+        this.music.stop();
+        this.scene.start('HighScore');
+    }
 }
 
+class HighScore extends Phaser.Scene{
+    constructor() {
+        super('HighScore');
+    }
+
+    create() {
+        console.log('HighScore.create');
+        // draw all the game objects onto the screen
+        this.add.image(500, 300, 'spacevoid');
+        
+        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
+        if they click on the button and not anything else.*/
+        const goBackButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 350,
+            scale: 0.3,
+            background: 'goBackButton',
+            onPush: this.goToTitleScene.bind(this)
+        });
+    }
+
+    // This method will allow the button component to proceed to the title scene.
+    goToTitleScene() {
+        this.scene.start('Title');
+    }
+}
 /*    
 The width and height properties set the size of the canvas element that Phaser will create.
 In this case 1000 x 600 pixels. Your game world can be any size you like,
@@ -504,6 +648,6 @@ const config = {
             debug: false
         }
     },
-    scene: [Boot, Preloader, Title, Game]
+    scene: [Boot, Preloader, Title, Option, Credits, Game, HighScore]
 };
 const game = new Phaser.Game(config);
