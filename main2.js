@@ -1,6 +1,16 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+4-29-24 Managed to translate the main game codes paradigm over to OOP style and implemented a title screen
+which preceeds the game. Added a button in the title screen to enable the user to go to the game when they press the button.
+Downloaded more asset images from the Google Drive folder made by Rania, she also resized the images to fit
+the dimensions of the game properly, thank you bby girl.
+
+
+4-28 and 4-27 
+stuck trying to convert the game over to object oriented programming...
+
+
 4-23-24 further optimized the collision and velocity upon the ball hitting the player or enemy paddles,
 now the ball will take into account the upper, center, and lower portions of each paddle. Still have to improve this.
 
@@ -28,6 +38,84 @@ by creating the main window for the game (black background at present) and one p
 
 
 
+class ButtonComponent extends Phaser.GameObjects.Container {
+    constructor(config) {
+        super(config.scene);
+        this.config = config;
+        this.spawnButton();
+    }
+    spawnButton() {
+        this.x = this.config.x;
+        this.y = this.config.y;
+        this.setScale(0.4,0.4);
+        
+        this.background = this.scene.add.image(0, 0, this.config.background);
+
+        this.background.setInteractive();
+
+        this.background.on('pointerdown', this.onPush, this);
+        this.background.on('pointerup', this.onPull, this);
+        this.background.on('pointerout', this.onOut, this);
+
+        this.text = this.scene.add.text(0, 0, 'test', {
+            fontSize: 120 * this.scene.game.scaleHeight * 3,
+            fontFamily: 'Tahoma',
+            padding: 10,
+            lineSpacing: 20,
+            align: 'center',
+            fill: '#ffffff',
+            wordWrap: {
+                width: this.background.displayWidth - 10,
+            }
+        });
+
+        this.firstScale = this.background.scale;
+
+        this.add(this.background);
+        this.add(this.text);
+        this.scene.add.existing(this);
+    }
+
+    destroy(fromScene) {
+        super.destroy(fromScene);
+    }
+
+    onPush() {
+        this.tweenObject('push');
+    }
+
+    onPull() {
+        if (typeof this.config.onPush === "function") {
+            this.config.onPush();
+            //this.scene.scene.start('Game');
+        }
+        this.tweenObject('pull');
+    }
+
+    onOut() {
+        this.tweenObject('pull');
+    }
+
+    tweenObject(status) {
+        const pressure = (status === "push" ? 0.9 : 1);
+        if (typeof this.text !== "undefined") {
+            this.config.scene.tweens.add({
+                targets: this.text,
+                scale: this.firstScale * pressure,
+                ease: 'Linear',
+                duration: 100,
+            });
+        }
+        this.scene.tweens.add({
+            targets: this.background,
+            scale: this.firstScale * pressure,
+            ease: 'Linear',
+            duration: 100,
+        });
+    }
+}
+
+
 class Boot extends Phaser.Scene {
     constructor() {
         super('Boot');
@@ -51,19 +139,23 @@ class Preloader extends Phaser.Scene {
          above the background, you would need to ensure that it was added as an image second, after the sky image:
         */
         this.load.audio('ingameMUSIC', 'assets/audio/space-120280.mp3');
-        this.load.image('spacevoid', 'assets/backgrounds/Azetude-GameplayBackground2.jpeg');
+        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png')
+        this.load.image('playButton', 'assets/buttons/Play Button.png')
+
+        this.load.image('spacevoid', 'assets/backgrounds/Azetude- Gameplay Background.png');
         //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
         // width and height of the frame in pixels
         this.load.spritesheet('paddle', 'assets/sprites/FirstPaddle.png', { frameWidth: 263, frameHeight: 551 });
         this.load.image('paddleAI', 'assets/sprites/SecondPaddle.png');
         this.load.image('BlueBall', 'assets/sprites/BlueBall.png');
+        
     }
 
     create() {
         console.log('Preloader.create');
 
-        this.scene.start('Game');
+        this.scene.start('Title');
     }
 }
 
@@ -76,6 +168,19 @@ class Title extends Phaser.Scene {
 
     create() {
         console.log('Title.create');
+        this.add.image(500,300,"menuBG");
+        
+        // this code would be good to use if simply clicking anywhere on the screen enabled the user to go to the game
+        //this.input.once('pointerdown', function () {console.log('From SceneA to SceneB');this.goToGameScene();}, this);
+
+        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
+        if they click on the button and not anything else.*/
+        const button = new ButtonComponent({
+            scene: this,
+            x: 500, y: 350,
+            background: 'playButton',
+            onPush: this.goToGameScene.bind(this)
+        });
     }
 
     goToGameScene() {
@@ -87,13 +192,11 @@ class Game extends Phaser.Scene {
     
     constructor() {
         super('Game');
-        // game objects
-        // var platform; unused delete this later
+
         this.playerScore = 0;
-        this.playerScoreText;
 
         this.enemyScore = 0;
-        this.enemyScoreText;
+
 
         /* 4-23-24 consider using these variables in the UPDATE method and create separate this.getRndInteger variables in the collision methods
         Why? because that way the X velocity for the ball upon hitting the player or enemy paddle will always change slighty
@@ -217,8 +320,8 @@ class Game extends Phaser.Scene {
         this.ball.setCollideWorldBounds(true);
 
         // collider method takes two objects and tests for collision and performs separation against them.
-        this.physics.add.collider(this.playerPaddle, this.ball, this.playerHitsBall);
-        this.physics.add.collider(this.enemyPaddle, this.ball, this.enemyHitsBall);
+        this.physics.add.collider(this.playerPaddle, this.ball, () => this.playerHitsBall());
+        this.physics.add.collider(this.enemyPaddle, this.ball, () => this.enemyHitsBall());
 
         console.log(`The width of ball is ${this.ball.width}`);
 
@@ -227,8 +330,8 @@ class Game extends Phaser.Scene {
         console.log(`The width of enemy paddle is ${this.enemyPaddle.width}`);
         console.log(`The height of enemy paddle is ${this.enemyPaddle.height}`);
 
-        this.playerScoreText = this.add.text(340, 0, `player score: ${this.playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", fixedWidth: 330 });
-        this.enemyScoreText = this.add.text(505, 0, `enemy score: ${this.enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#FFF", fixedWidth: 330 });
+        this.playerScoreText = this.add.text(150, 0, `player score: ${this.playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#7DDA58", fixedWidth: 330 });
+        this.enemyScoreText = this.add.text(505, 0, `enemy score: ${this.enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#7DDA58", fixedWidth: 330 });
 
     }
 
@@ -273,8 +376,11 @@ class Game extends Phaser.Scene {
 
         Stop moving the paddle when the ball is not within its vicinity
         by stopping its velocity. */
+        console.log("hello");
+        console.log(this.ball.body.velocity.x);
+        console.log("bye");
 
-        console.log(`The x velocity of ball is ${this.ball.body.velocity.x.toString()} and the y velocity of ball is ${this.ball.body.velocity.y.toString()}`);
+        console.log(`The x velocity of ball is ${this.ball.body.velocity.x} and the y velocity of ball is ${this.ball.body.velocity.y}`);
 
         // ball is greater than or equal a width before the enemy paddle and a height below the enemys paddle.
         if (this.ball.x >= (this.enemyPaddle.x - 350) && this.ball.y >= this.enemyPaddle.y + 60) {
@@ -335,12 +441,12 @@ class Game extends Phaser.Scene {
         else if (this.ball.y < this.playerPaddle.y) {
             // when the ball hits the upper portion of the paddle, then it should bounce at a 45 - 50 degree angle.
             console.log("ball hit upper portion of player paddle");
-            this.ball.setVelocity(xVelocityBallPlayer, this.yVelocityBallPlayerList[1]);
+            this.ball.setVelocity(this.xVelocityBallPlayer, this.yVelocityBallPlayerList[1]);
         }
         else {
             // when the ball hits the lower portion of the paddle, then it should bounce at a negative 45 - 50 degree angle.
             console.log("ball hit lower portion of player paddle");
-            this.ball.setVelocity(xVelocityBallPlayer, this.yVelocityBallPlayerList[2]);
+            this.ball.setVelocity(this.xVelocityBallPlayer, this.yVelocityBallPlayerList[2]);
         }
 
 
@@ -364,7 +470,7 @@ class Game extends Phaser.Scene {
             console.log("ball hit middle portion of enemy paddle");
             this.ball.setVelocity(this.xVelocityBallEnemy, this.yVelocityBallEnemyList[0]);
         }
-        else if (ball.y < enemyPaddle.y) {
+        else if (this.ball.y < this.enemyPaddle.y) {
             // when the ball hits the upper portion of the paddle, then it should bounce at a 45 - 50 degree angle.
             console.log("ball hit upper portion of enemy paddle");
             this.ball.setVelocity(this.xVelocityBallEnemy, this.yVelocityBallEnemyList[1]);
@@ -398,6 +504,6 @@ const config = {
             debug: false
         }
     },
-    scene: [Boot, Preloader, Game]
+    scene: [Boot, Preloader, Title, Game]
 };
 const game = new Phaser.Game(config);
