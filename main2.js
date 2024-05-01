@@ -283,8 +283,10 @@ class Game extends Phaser.Scene {
     constructor() {
         super('Game');
 
-        this.playerScore = 0;
+        this.playerScore = 50;
         this.enemyScore = 0;
+        this.goBackButton;
+        this.pauseButton;
         /* 4-23-24 consider using these variables in the UPDATE method and create separate this.getRndInteger variables in the collision methods
         Why? because that way the X velocity for the ball upon hitting the player or enemy paddle will always change slighty
         instead of staying at a fixed number (Despite using random) */
@@ -430,14 +432,22 @@ class Game extends Phaser.Scene {
         this.playerScoreText = this.add.text(150, 0, `player score: ${this.playerScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#7DDA58", fixedWidth: 330 });
         this.enemyScoreText = this.add.text(505, 0, `enemy score: ${this.enemyScore}`, { fontFamily: 'Dream MMA', fontSize: '25px', fill: "#7DDA58", fixedWidth: 330 });
 
-        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
-if they click on the button and not anything else.*/
-        const goBackButton = new ButtonComponent({
+        /* Button component code  ensures the user can go back to the title scene
+        if they click on the button and not anything else.*/
+        this.goBackButton = new ButtonComponent({
             scene: this,
             x: 55, y: 35,
             scale: 0.2,
             background: 'goBackButton',
             onPush: this.goToTitleScene.bind(this)
+        });
+
+        this.pauseButton = new ButtonComponent({
+            scene:this,
+            x: 300, y:200,
+            scale:0.3,
+            background: 'goBackButton',
+            onPush: this.pauseGame.bind(this)
         });
     }
 
@@ -510,7 +520,7 @@ if they click on the button and not anything else.*/
         }
 
         // check when player or enemy reaches the maximum score and go to the high score screen
-        if (this.playerScore == 1 || this.enemyScore == 1)
+        if (this.playerScore == 99 || this.enemyScore == 99)
         {
             this.goToHighScoreScene();
         }
@@ -598,6 +608,11 @@ if they click on the button and not anything else.*/
         this.enemyScore = 0;
         this.music.stop();
         this.scene.start('HighScore');
+    }
+
+    pauseGame(){
+        console.log("hello");
+
     }
 }
 
