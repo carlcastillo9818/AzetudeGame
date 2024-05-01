@@ -146,11 +146,12 @@ class Preloader extends Phaser.Scene {
          above the background, you would need to ensure that it was added as an image second, after the sky image:
         */
         this.load.audio('ingameMUSIC', 'assets/audio/space-120280.mp3');
-        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
         this.load.image('playButton', 'assets/buttons/Play Button.png');
         this.load.image('optionButton', 'assets/buttons/Option Button.png');
         this.load.image('creditsButton', 'assets/buttons/Credits Button.png');
         this.load.image('spacevoid', 'assets/backgrounds/Azetude- Gameplay Background.png');
+        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
+
         //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
         // width and height of the frame in pixels
@@ -177,8 +178,8 @@ class Title extends Phaser.Scene {
 
     create() {
         console.log('Title.create');
-        this.add.image(500,300,"menuBG");
-        
+        this.add.image(500, 300, "menuBG");
+
         // this code would be good to use if simply clicking anywhere on the screen enabled the user to go to the game
         //this.input.once('pointerdown', function () {console.log('From SceneA to SceneB');this.goToGameScene();}, this);
 
@@ -187,7 +188,7 @@ class Title extends Phaser.Scene {
         const playButton = new ButtonComponent({
             scene: this,
             x: 500, y: 320,
-            scale:0.3,
+            scale: 0.3,
             background: 'playButton',
             onPush: this.goToGameScene.bind(this)
         });
@@ -226,15 +227,15 @@ class Title extends Phaser.Scene {
 
 }
 
-class Option extends Phaser.Scene{
-    constructor(){
+class Option extends Phaser.Scene {
+    constructor() {
         super('Option');
     }
 
-    create(){
+    create() {
         console.log('Option.create');
         this.add.image(500, 300, "menuBG");
-        
+
         /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
         if they click on the button and not anything else.*/
         const goBackButton = new ButtonComponent({
@@ -279,12 +280,12 @@ class Credits extends Phaser.Scene {
 }
 
 class Game extends Phaser.Scene {
-    
+
     constructor() {
         super('Game');
 
-        this.playerScore = 50;
-        this.enemyScore = 30;
+        this.playerScore = 0;
+        this.enemyScore = 0;
         this.goBackButton;
         this.pauseButton;
         /* 4-23-24 consider using these variables in the UPDATE method and create separate this.getRndInteger variables in the collision methods
@@ -442,13 +443,13 @@ class Game extends Phaser.Scene {
             onPush: this.goToTitleScene.bind(this)
         });
 
-        this.pauseButton = new ButtonComponent({
-            scene:this,
-            x: 300, y:200,
-            scale:0.3,
-            background: 'goBackButton',
-            onPush: this.pauseGame.bind(this)
-        });
+        // for the pause button, I will use my own implementation (separate from the ButtonComponent class)
+        this.pauseButton = this.add.image(300,300,'goBackButton');
+        this.pauseButton.setInteractive();
+        this.pauseButton.setScale(0.2);
+        this.pauseButton.on('pointerdown',this.pauseGame,this);
+        //this.background.on('pointerdown', this.onPush, this);
+
     }
 
 
@@ -520,8 +521,7 @@ class Game extends Phaser.Scene {
         }
 
         // check when player or enemy reaches the maximum score and go to the high score screen
-        if (this.playerScore == 99 || this.enemyScore == 99)
-        {
+        if (this.playerScore == 99 || this.enemyScore == 99) {
             this.goToHighScoreScene();
         }
     }
@@ -602,7 +602,7 @@ class Game extends Phaser.Scene {
     }
 
     // This method will allow the button component to proceed to the high scene, reset scores, and stop the music
-    goToHighScoreScene(){
+    goToHighScoreScene() {
         console.log('Going from Game to High Score scene');
         this.playerScore = 0;
         this.enemyScore = 0;
@@ -610,13 +610,14 @@ class Game extends Phaser.Scene {
         this.scene.start('HighScore');
     }
 
-    pauseGame(){
-        console.log("hello");
+    pauseGame() {
+        console.log("pausing game");
 
     }
 }
 
-class HighScore extends Phaser.Scene{
+
+class HighScore extends Phaser.Scene {
     constructor() {
         super('HighScore');
     }
@@ -625,7 +626,7 @@ class HighScore extends Phaser.Scene{
         console.log('HighScore.create');
         // draw all the game objects onto the screen
         this.add.image(500, 300, 'spacevoid');
-        
+
         /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
         if they click on the button and not anything else.*/
         const goBackButton = new ButtonComponent({
