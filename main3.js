@@ -1,6 +1,11 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+5-2-24 Successfully implemented a basic pause button and resume button functionalities into the game via
+two buttons.  Will improve this with better looking images for the buttons and a better spot to position them.
+
+4-30 to 5-1: Trying to figure out how to pause game correctly (my way)
+
 4-29-24 Managed to translate the main game codes paradigm over to OOP style and implemented a title menu scene
 which preceeds the game. Added a button in the title screen to enable the user to go to the game when they press the button.
 Downloaded more asset images from the Google Drive folder made by Rania, she also resized the images to fit
@@ -146,12 +151,11 @@ class Preloader extends Phaser.Scene {
          above the background, you would need to ensure that it was added as an image second, after the sky image:
         */
         this.load.audio('ingameMUSIC', 'assets/audio/space-120280.mp3');
+        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
         this.load.image('playButton', 'assets/buttons/Play Button.png');
         this.load.image('optionButton', 'assets/buttons/Option Button.png');
         this.load.image('creditsButton', 'assets/buttons/Credits Button.png');
         this.load.image('spacevoid', 'assets/backgrounds/Azetude- Gameplay Background.png');
-        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
-
         //this.load.image('rainbowvoid', 'assets/rainbowvoid.png');
 
         // width and height of the frame in pixels
@@ -159,6 +163,8 @@ class Preloader extends Phaser.Scene {
         this.load.image('paddleAI', 'assets/sprites/SecondPaddle.png');
         this.load.image('BlueBall', 'assets/sprites/BlueBall.png');
         this.load.image('goBackButton', 'assets/buttons/back button.png');
+        this.load.image('pauseButton', 'assets/buttons/pausebutton1.png');
+        this.load.image('resumeButton', 'assets/buttons/resumebutton1.png');
 
     }
 
@@ -443,12 +449,14 @@ class Game extends Phaser.Scene {
             onPush: this.goToTitleScene.bind(this)
         });
 
-        // for the pause button, I will use my own implementation (separate from the ButtonComponent class)
-        this.pauseButton = this.add.image(300,300,'goBackButton');
-        this.pauseButton.setInteractive();
-        this.pauseButton.setScale(0.2);
-        this.pauseButton.on('pointerdown',this.pauseGame,this);
-        //this.background.on('pointerdown', this.onPush, this);
+        // pause button allowing the player to stop the game until they want to resume it again
+        this.pauseButton = new ButtonComponent({
+            scene: this,
+            x: 55, y: 100,
+            scale: 0.2,
+            background: 'pauseButton',
+            onPush: this.pauseGame.bind(this)
+        });
 
     }
 
@@ -592,7 +600,7 @@ class Game extends Phaser.Scene {
         }
     }
 
-    // This method will allow the button component to proceed to the title scene, reset scores, and stop the music
+    // This method will allow the button component to proceed to the title scene, reset scores, and stop the music.
     goToTitleScene() {
         console.log('Going from Game to Title scene');
         this.playerScore = 0;
@@ -601,7 +609,7 @@ class Game extends Phaser.Scene {
         this.scene.start('Title');
     }
 
-    // This method will allow the button component to proceed to the high scene, reset scores, and stop the music
+    // This method will allow the button component to proceed to the high scene, reset scores, and stop the music.
     goToHighScoreScene() {
         console.log('Going from Game to High Score scene');
         this.playerScore = 0;
@@ -610,12 +618,55 @@ class Game extends Phaser.Scene {
         this.scene.start('HighScore');
     }
 
+    /* This method allows the player to pause the current scene and stop 
+    the music then open a pause Menu (new scene).
+     */
     pauseGame() {
         console.log("pausing game");
-
+        this.scene.pause();
+        this.music.stop();
+        this.scene.launch('PauseMenu');
     }
 }
 
+
+class PauseMenu extends Phaser.Scene{
+    constructor() {
+        super('PauseMenu');
+        this.pausedMenu;
+        this.resumeButton;
+
+    }
+
+    create() {
+        console.log('PauseMenu.create');
+        //The veil is a way to apply a shadow over the game scene and allow the pause menu to appear as an overlay on top.
+        this.veil = this.add.graphics({x:0,y:0});
+        this.veil.fillStyle('0x000000',0.3);
+        this.veil.fillRect(0,0,1000, 600);
+        this.veil.setScrollFactor(0);
+
+        /* This button allows the player to resume the current scene.
+        */
+        this.resumeButton = new ButtonComponent({
+            scene: this,
+            x: 55, y: 100,
+            scale: 0.2,
+            background: 'resumeButton',
+            onPush: this.goToGameScene.bind(this)
+        });
+    }
+    
+    /* This method allows the player to resume Game scene and it stops
+    the pause menu which erases the veil and resume button from the screen.
+    */
+    goToGameScene(){
+        console.log("going back to game");
+        this.scene.resume('Game');
+        this.scene.stop('PauseMenu');
+    }
+
+}
 
 class HighScore extends Phaser.Scene {
     constructor() {
@@ -664,6 +715,6 @@ const config = {
             debug: false
         }
     },
-    scene: [Boot, Preloader, Title, Option, Credits, Game, HighScore]
+    scene: [Boot, Preloader, Title, Option, Credits, Game, PauseMenu, HighScore]
 };
 const game = new Phaser.Game(config);
