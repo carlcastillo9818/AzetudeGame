@@ -2,7 +2,7 @@
 Further progress updates will be written here (much like what I did for my Frogger game)
 5-7-24 after taking a break from development, I am resuming work on the game.  I implemented a victory screen
 and then transition to high score screen. The victory screen features the winners name, and their score.  The user can input
-their initials to be saved with their score in the high score scren.
+their initials to be saved with their score in the high score screen.
 
 5-2-24 Successfully implemented a basic pause button and resume button functionalities into the game via
 two buttons.  Will improve this with better looking images for the buttons and a better spot to position them.
