@@ -1,5 +1,8 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
+5-7-24 after taking a break from development, I am resuming work on the game.  I implemented a victory screen
+and then transition to high score screen. The victory screen features the winners name, and their score.  The user can input
+their initials to be saved with their score in the high score scren.
 
 5-2-24 Successfully implemented a basic pause button and resume button functionalities into the game via
 two buttons.  Will improve this with better looking images for the buttons and a better spot to position them.
@@ -165,7 +168,10 @@ class Preloader extends Phaser.Scene {
         this.load.image('goBackButton', 'assets/buttons/back button.png');
         this.load.image('pauseButton', 'assets/buttons/pausebutton1.png');
         this.load.image('resumeButton', 'assets/buttons/resumebutton1.png');
-
+        this.load.image('victoryScreen', 'assets/backgrounds/placeholder.jpg');
+        this.load.image('continueButton1','assets/buttons/continuebutton1.png');
+        this.load.image('highScoresScreen', 'assets/backgrounds/placeholder2.jpg');
+        this.load.image('goTitleScreenButton1', 'assets/buttons/gobacktitlescreenbutton1.png');
     }
 
     create() {
@@ -425,7 +431,7 @@ class Game extends Phaser.Scene {
 
         // collider method takes two objects and tests for collision and performs separation against them.
         // IMPORTANT NOTE 4-29-24 -> Make sure to use arrow notation when providing a method for the colliders third arg,
-        // this is needed when doing everything in a class oriented approach.
+        // this is needed when doing everything in a class oriented approach (ANONYMOUS FUNCTION).
         this.physics.add.collider(this.playerPaddle, this.ball, () => this.playerHitsBall());
         this.physics.add.collider(this.enemyPaddle, this.ball, () => this.enemyHitsBall());
 
@@ -529,8 +535,8 @@ class Game extends Phaser.Scene {
         }
 
         // check when player or enemy reaches the maximum score and go to the high score screen
-        if (this.playerScore == 99 || this.enemyScore == 99) {
-            this.goToHighScoreScene();
+        if (this.playerScore === 3 || this.enemyScore === 3) {
+            this.goToVictoryScene();
         }
     }
 
@@ -618,6 +624,28 @@ class Game extends Phaser.Scene {
         this.scene.start('HighScore');
     }
 
+    goToVictoryScene() {
+        console.log('Going from Game to Victory scene');
+        let winningScore = -1;
+        let identityOfWinner = "unknown";
+
+        if (this.playerScore > this.enemyScore) {
+            console.log("PLAYER SCORE WAS BIGGER SO IM PASSING IT TO THE VICTORY SCENE FUNCTION");
+            winningScore = this.playerScore;
+            identityOfWinner = "You";
+        }
+        else if (this.enemyScore > this.playerScore) {
+            console.log("ENEMY SCORE WAS BIGGER SO IM PASSING IT TO THE VICTORY SCENE FUNCTION");
+            winningScore = this.enemyScore;
+            identityOfWinner = "AI";
+        }
+        console.log(`winningScore value is ${winningScore} and identity of winner is ${identityOfWinner}`);
+        this.playerScore = 0;
+        this.enemyScore = 0;
+        this.music.stop();
+        this.scene.start('Victory', {winningScore,identityOfWinner});
+
+    }
     /* This method allows the player to pause the current scene and stop 
     the music then open a pause Menu (new scene).
      */
@@ -630,7 +658,7 @@ class Game extends Phaser.Scene {
 }
 
 
-class PauseMenu extends Phaser.Scene{
+class PauseMenu extends Phaser.Scene {
     constructor() {
         super('PauseMenu');
         this.pausedMenu;
@@ -641,9 +669,9 @@ class PauseMenu extends Phaser.Scene{
     create() {
         console.log('PauseMenu.create');
         //The veil is a way to apply a shadow over the game scene and allow the pause menu to appear as an overlay on top.
-        this.veil = this.add.graphics({x:0,y:0});
-        this.veil.fillStyle('0x000000',0.3);
-        this.veil.fillRect(0,0,1000, 600);
+        this.veil = this.add.graphics({ x: 0, y: 0 });
+        this.veil.fillStyle('0x000000', 0.3);
+        this.veil.fillRect(0, 0, 1000, 600);
         this.veil.setScrollFactor(0);
 
         /* This button allows the player to resume the current scene.
@@ -656,11 +684,11 @@ class PauseMenu extends Phaser.Scene{
             onPush: this.goToGameScene.bind(this)
         });
     }
-    
+
     /* This method allows the player to resume Game scene and it stops
     the pause menu which erases the veil and resume button from the screen.
     */
-    goToGameScene(){
+    goToGameScene() {
         console.log("going back to game");
         this.scene.resume('Game');
         this.scene.stop('PauseMenu');
@@ -668,28 +696,114 @@ class PauseMenu extends Phaser.Scene{
 
 }
 
+
+class Victory extends Phaser.Scene {
+    constructor() {
+        super('Victory');
+        this.victoryText;
+        this.winnerName;
+        this.winnerScore;
+        this.promptEnterText;
+        this.userInitialsEntry;
+    }
+
+    create(data) {
+        console.log('Victory.create');
+        console.log(data);
+        console.log(data.winningScore);
+        console.log(data.identityOfWinner);
+
+
+        // draw all the game objects onto the screen
+        this.add.image(500, 300, 'victoryScreen');
+
+        // print the winners name and their score to the screen
+        this.victoryText = this.add.text(200, 50, `${data.identityOfWinner} won the game!\nWinning score : ${data.winningScore} points`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58"});
+
+        // Continue button will proceed to the next scene upon clicking it 
+        const continueButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 450,
+            scale: 0.3,
+            background: 'continueButton1',
+            onPush: this.goToHighScoreScene.bind(this)
+        });
+
+        // save winners name and winner score to be used later
+        this.winnerName = data.identityOfWinner;
+        this.winnerScore = data.winningScore;
+
+        // prompt that asks the user to input their initials
+        this.promptEnterText = this.add.text(350, 200, 'Enter your initials:', { fontFamily: 'Dream MMA', fontSize: '20px', fill: "#7DDA58"});
+
+        // the text field that will capture the user input, initially its blank
+        this.userInitialsEntry = this.add.text(350, 300, '', { fontFamily: 'Dream MMA', fontSize: '20px', fill: "#7DDA58" });
+
+        // when the user starts typing into the text field, the existing text will get replaced with the new text that the user entered.
+        this.input.keyboard.on('keydown', event => {
+            if (event.keyCode === 8 && this.userInitialsEntry.text.length > 0) {
+                this.userInitialsEntry.text = this.userInitialsEntry.text.substr(0, this.userInitialsEntry.text.length - 1);
+            }
+            else if (event.keyCode === 32 || (event.keyCode >= 48 && event.keyCode <= 90)) {
+                this.userInitialsEntry.text += event.key;
+            }
+        });
+
+        console.log("heyheyhey");
+        console.log(`this.textEntry.text value is initialized as : ${this.userInitialsEntry.text}`);
+        console.log("byebyebye");
+
+    }
+
+    update(){
+        // testing --- see what the users input is on each frame update
+        console.log("User typing something..");
+        console.log(`this.textEntry.text value is: ${this.userInitialsEntry.text}`);
+
+        // as user types text, keep track of the length of their text input (cannot exceed a certain length)
+        //continue here 5-7-24
+        if (this.userInitialsEntry.text.length > 5){
+            console.log("you have went beyond 5 characters");
+        }
+    }
+
+    // This method will cause the high score scene to start and show all the high scores from the game so far.
+    goToHighScoreScene(){
+        let winningScore = this.winnerScore;
+        let inputtedInitials = this.userInitialsEntry.text;
+        console.log("Calling goToHighScoreScene");
+        console.log(`winningScore value : ${winningScore}`);
+        console.log(`inputtedInitials value : ${inputtedInitials}`);
+        this.scene.start('HighScore', {inputtedInitials,winningScore});
+    }
+}
+
 class HighScore extends Phaser.Scene {
     constructor() {
         super('HighScore');
+        this.currentScoreName;
     }
 
-    create() {
+    create(data) {
         console.log('HighScore.create');
         // draw all the game objects onto the screen
-        this.add.image(500, 300, 'spacevoid');
+        this.add.image(500, 300, 'highScoresScreen');
 
-        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
-        if they click on the button and not anything else.*/
+        // print the winners name and their score to the screen
+        this.currentScoreName = this.add.text(200, 100, `${data.inputtedInitials} won the game!\nWinning score : ${data.winningScore} points`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58" });
+
+        // This back button will not go back to the victory screen, instead it will proceed to the game menu (essentially restarting the game all over again) 
         const goBackButton = new ButtonComponent({
             scene: this,
             x: 500, y: 350,
             scale: 0.3,
-            background: 'goBackButton',
+            background: 'goTitleScreenButton1',
             onPush: this.goToTitleScene.bind(this)
         });
+    
     }
 
-    // This method will allow the button component to proceed to the title scene.
+    // This method will cause the scene to change to the title screen menu and the player can start playing the game once again.
     goToTitleScene() {
         this.scene.start('Title');
     }
@@ -715,6 +829,6 @@ const config = {
             debug: false
         }
     },
-    scene: [Boot, Preloader, Title, Option, Credits, Game, PauseMenu, HighScore]
+    scene: [Boot, Preloader, Title, Option, Credits, Game, PauseMenu, Victory, HighScore]
 };
 const game = new Phaser.Game(config);
