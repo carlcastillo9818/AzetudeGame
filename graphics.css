@@ -1,3 +1,13 @@
+@font-face {
+    font-family: myFirstFont;
+    src: url(Dream-MMA.ttf);
+}
+
+* {
+    font-family: myFirstFont;
+}
+
 body {
     margin: 0;
 }
+

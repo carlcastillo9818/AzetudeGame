@@ -1,5 +1,11 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
+
+5-8-24 Continued working on victory screen and high score screen. Figured out that DREAM MMA font only works
+with lower case letters, otherwise capital letters will display in a generic font.  Changed the background of
+the victory screen.  Figured out the logic for user initials input (limit it to a certain number of characters
+    and allow them to backspace if they want to enter a different name).
+
 5-7-24 after taking a break from development, I am resuming work on the game.  I implemented a victory screen
 and then transition to high score screen. The victory screen features the winners name, and their score.  The user can input
 their initials to be saved with their score in the high score screen.
@@ -166,9 +172,9 @@ class Preloader extends Phaser.Scene {
         this.load.image('paddleAI', 'assets/sprites/SecondPaddle.png');
         this.load.image('BlueBall', 'assets/sprites/BlueBall.png');
         this.load.image('goBackButton', 'assets/buttons/back button.png');
-        this.load.image('pauseButton', 'assets/buttons/pausebutton1.png');
-        this.load.image('resumeButton', 'assets/buttons/resumebutton1.png');
-        this.load.image('victoryScreen', 'assets/backgrounds/placeholder.jpg');
+        this.load.image('pauseButton', 'assets/buttons/Pause Button.png');
+        this.load.image('resumeButton', 'assets/buttons/Play Button New.png');
+        this.load.image('victoryScreen', 'assets/backgrounds/Fixed Winning Screen Updated.png');
         this.load.image('continueButton1','assets/buttons/continuebutton1.png');
         this.load.image('highScoresScreen', 'assets/backgrounds/placeholder2.jpg');
         this.load.image('goTitleScreenButton1', 'assets/buttons/gobacktitlescreenbutton1.png');
@@ -458,7 +464,7 @@ class Game extends Phaser.Scene {
         // pause button allowing the player to stop the game until they want to resume it again
         this.pauseButton = new ButtonComponent({
             scene: this,
-            x: 55, y: 100,
+            x: 950, y: 35,
             scale: 0.2,
             background: 'pauseButton',
             onPush: this.pauseGame.bind(this)
@@ -636,7 +642,7 @@ class Game extends Phaser.Scene {
         }
         else if (this.enemyScore > this.playerScore) {
             console.log("ENEMY SCORE WAS BIGGER SO IM PASSING IT TO THE VICTORY SCENE FUNCTION");
-            winningScore = this.enemyScore;
+            winningScore = this.playerScore;
             identityOfWinner = "AI";
         }
         console.log(`winningScore value is ${winningScore} and identity of winner is ${identityOfWinner}`);
@@ -678,7 +684,7 @@ class PauseMenu extends Phaser.Scene {
         */
         this.resumeButton = new ButtonComponent({
             scene: this,
-            x: 55, y: 100,
+            x: 950, y: 35,
             scale: 0.2,
             background: 'resumeButton',
             onPush: this.goToGameScene.bind(this)
@@ -713,12 +719,13 @@ class Victory extends Phaser.Scene {
         console.log(data.winningScore);
         console.log(data.identityOfWinner);
 
-
         // draw all the game objects onto the screen
         this.add.image(500, 300, 'victoryScreen');
 
+        this.nameOfWinner = this.add.text(450, 30, `${data.identityOfWinner} won!`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#0002E2" });
+
         // print the winners name and their score to the screen
-        this.victoryText = this.add.text(200, 50, `${data.identityOfWinner} won the game!\nWinning score : ${data.winningScore} points`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58"});
+        this.victoryText = this.add.text(300, 200, `Your score : ${data.winningScore} points`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#0002E2"});
 
         // Continue button will proceed to the next scene upon clicking it 
         const continueButton = new ButtonComponent({
@@ -734,37 +741,40 @@ class Victory extends Phaser.Scene {
         this.winnerScore = data.winningScore;
 
         // prompt that asks the user to input their initials
-        this.promptEnterText = this.add.text(350, 200, 'Enter your initials:', { fontFamily: 'Dream MMA', fontSize: '20px', fill: "#7DDA58"});
+        this.promptEnterText = this.add.text(300, 350, 'Enter your initials:', { fontFamily: 'Dream MMA', fontSize: '20px', fill: "#0002E2"});
 
         // the text field that will capture the user input, initially its blank
-        this.userInitialsEntry = this.add.text(350, 300, '', { fontFamily: 'Dream MMA', fontSize: '20px', fill: "#7DDA58" });
+        this.userInitialsEntry = this.add.text(500, 450, '', { fontFamily: 'Dream MMA', fontSize: '60px', fill: "#0002E2" });
 
         // when the user starts typing into the text field, the existing text will get replaced with the new text that the user entered.
         this.input.keyboard.on('keydown', event => {
+            // check if backspace is entered AFTER the user has typed something of length > 0
             if (event.keyCode === 8 && this.userInitialsEntry.text.length > 0) {
                 this.userInitialsEntry.text = this.userInitialsEntry.text.substr(0, this.userInitialsEntry.text.length - 1);
             }
+            // check if user presses space bar or types in a digit, special symbol, or alphabet letter
             else if (event.keyCode === 32 || (event.keyCode >= 48 && event.keyCode <= 90)) {
                 this.userInitialsEntry.text += event.key;
+                // convert user input to UPPERCASE as they're typing
+                this.userInitialsEntry.text = this.userInitialsEntry.text.toUpperCase();
+
             }
+
+            // stop the users input from going beyond a certain length
+            if (this.userInitialsEntry.text.length > 4) {
+                console.log("you have gone beyond 4 characters");
+                this.userInitialsEntry.text = this.userInitialsEntry.text.substr(0, this.userInitialsEntry.text.length - 1);
+            }
+
+
+
+
         });
 
         console.log("heyheyhey");
         console.log(`this.textEntry.text value is initialized as : ${this.userInitialsEntry.text}`);
         console.log("byebyebye");
 
-    }
-
-    update(){
-        // testing --- see what the users input is on each frame update
-        console.log("User typing something..");
-        console.log(`this.textEntry.text value is: ${this.userInitialsEntry.text}`);
-
-        // as user types text, keep track of the length of their text input (cannot exceed a certain length)
-        //continue here 5-7-24
-        if (this.userInitialsEntry.text.length > 5){
-            console.log("you have went beyond 5 characters");
-        }
     }
 
     // This method will cause the high score scene to start and show all the high scores from the game so far.
@@ -808,6 +818,7 @@ class HighScore extends Phaser.Scene {
         this.scene.start('Title');
     }
 }
+
 /*    
 The width and height properties set the size of the canvas element that Phaser will create.
 In this case 1000 x 600 pixels. Your game world can be any size you like,
