@@ -1,10 +1,16 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+5-12-24 Finished the placement of elements on the victory screen, then started working on the high score screen.
+Came up with an algorithm to sort the scores of the players into descending order, must continue working on implementing it.
+
+EXTRA NOTE: MAKE SURE TO CHECK WHEN EITHER REACHES 10 THEN END THE GAME AND GO TO VICTORY SCREEN.
+THIS IS LOCATED UNDER THE GAME CLASS IN THE UPDATE METHOD.
+
 5-8-24 Continued working on victory screen and high score screen. Figured out that DREAM MMA font only works
 with lower case letters, otherwise capital letters will display in a generic font.  Changed the background of
 the victory screen.  Figured out the logic for user initials input (limit it to a certain number of characters
-    and allow them to backspace if they want to enter a different name).
+and allow them to backspace if they want to enter a different name).
 
 5-7-24 after taking a break from development, I am resuming work on the game.  I implemented a victory screen
 and then transition to high score screen. The victory screen features the winners name, and their score.  The user can input
@@ -78,7 +84,7 @@ class ButtonComponent extends Phaser.GameObjects.Container {
         this.background.on('pointerup', this.onPull, this);
         this.background.on('pointerout', this.onOut, this);
 
-        this.text = this.scene.add.text(0, 0, 'test', {
+        this.text = this.scene.add.text(0, 0, '', {
             fontSize: 120 * this.scene.game.scaleHeight * 3,
             fontFamily: 'Tahoma',
             padding: 10,
@@ -175,9 +181,9 @@ class Preloader extends Phaser.Scene {
         this.load.image('pauseButton', 'assets/buttons/Pause Button.png');
         this.load.image('resumeButton', 'assets/buttons/Play Button New.png');
         this.load.image('victoryScreen', 'assets/backgrounds/Fixed Winning Screen Updated.png');
-        this.load.image('continueButton1','assets/buttons/continuebutton1.png');
-        this.load.image('highScoresScreen', 'assets/backgrounds/placeholder2.jpg');
-        this.load.image('goTitleScreenButton1', 'assets/buttons/gobacktitlescreenbutton1.png');
+        this.load.image('continueButton1','assets/buttons/Continue Button.png');
+        this.load.image('highScoresScreen', 'assets/backgrounds/LeaderBoard Resize Pixel (1).png');
+        this.load.image('goTitleScreenButton1', 'assets/buttons/go back to title screen button.png');
     }
 
     create() {
@@ -541,7 +547,8 @@ class Game extends Phaser.Scene {
         }
 
         // check when player or enemy reaches the maximum score and go to the high score screen
-        if (this.playerScore === 3 || this.enemyScore === 3) {
+        // 5-12-24 MAKE SURE TO CHECK WHEN EITHER REACHES 10 THEN END THE GAME AND GO TO VICTORY SCREEN
+        if (this.playerScore === 1 || this.enemyScore === 1) {
             this.goToVictoryScene();
         }
     }
@@ -706,9 +713,13 @@ class PauseMenu extends Phaser.Scene {
 class Victory extends Phaser.Scene {
     constructor() {
         super('Victory');
-        this.victoryText;
+        this.nameOfWinnerText;
+        this.yourScoreText;
+        this.pointsText;
+
         this.winnerName;
         this.winnerScore;
+
         this.promptEnterText;
         this.userInitialsEntry;
     }
@@ -717,34 +728,40 @@ class Victory extends Phaser.Scene {
         console.log('Victory.create');
         console.log(data);
         console.log(data.winningScore);
-        console.log(data.identityOfWinner);
+        console.log(data.identityOfWinner.toLowerCase());
 
         // draw all the game objects onto the screen
         this.add.image(500, 300, 'victoryScreen');
 
-        this.nameOfWinner = this.add.text(450, 30, `${data.identityOfWinner} won!`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#0002E2" });
+        // print the winners name
+        if (data.identityOfWinner == "You"){
+            this.nameOfWinnerText = this.add.text(395, 39, `${data.identityOfWinner.toLowerCase()} won`, { fontFamily: 'Dream MMA', fontSize: '32px', fill: "#0002E2", fixedWidth: 330 });
+        }
+        else if (data.identityOfWinner == "AI"){
+            this.nameOfWinnerText = this.add.text(410, 39, `${data.identityOfWinner.toLowerCase()} won`, { fontFamily: 'Dream MMA', fontSize: '32px', fill: "#0002E2", fixedWidth: 330 });
+        }
+        // print the winners score 
+        this.yourScoreText = this.add.text(390, 177, `your score :`, { fontFamily: 'Dream MMA', fontSize: '24px', fill: "#0002E2", fixedWidth: 330});
+        this.pointsText = this.add.text(460, 200, `${data.winningScore}`, { fontFamily: 'Dream MMA', fontSize: '45px', fill: "#0002E2", fixedWidth: 330});
 
-        // print the winners name and their score to the screen
-        this.victoryText = this.add.text(300, 200, `Your score : ${data.winningScore} points`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#0002E2"});
-
-        // Continue button will proceed to the next scene upon clicking it 
-        const continueButton = new ButtonComponent({
-            scene: this,
-            x: 500, y: 450,
-            scale: 0.3,
-            background: 'continueButton1',
-            onPush: this.goToHighScoreScene.bind(this)
-        });
-
-        // save winners name and winner score to be used later
+        // store winners name and winner score to be used later
         this.winnerName = data.identityOfWinner;
         this.winnerScore = data.winningScore;
 
         // prompt that asks the user to input their initials
-        this.promptEnterText = this.add.text(300, 350, 'Enter your initials:', { fontFamily: 'Dream MMA', fontSize: '20px', fill: "#0002E2"});
+        this.promptEnterText = this.add.text(280, 300, 'enter your initials', { fontFamily: 'Dream MMA', fontSize: '30px', fill: "#ff0606", fixedWidth: 500});
 
         // the text field that will capture the user input, initially its blank
-        this.userInitialsEntry = this.add.text(500, 450, '', { fontFamily: 'Dream MMA', fontSize: '60px', fill: "#0002E2" });
+        this.userInitialsEntry = this.add.text(420, 365, '', { fontFamily: 'Dream MMA', fontSize: '36px', fill: "#ff0606", fixedWidth: 330});
+
+        // Continue button will proceed to the next scene upon clicking it 
+        const continueButton = new ButtonComponent({
+            scene: this,
+            x: 513, y: 488,
+            scale: 0.5,
+            background: 'continueButton1',
+            onPush: this.goToHighScoreScene.bind(this)
+        });
 
         // when the user starts typing into the text field, the existing text will get replaced with the new text that the user entered.
         this.input.keyboard.on('keydown', event => {
@@ -755,8 +772,8 @@ class Victory extends Phaser.Scene {
             // check if user presses space bar or types in a digit, special symbol, or alphabet letter
             else if (event.keyCode === 32 || (event.keyCode >= 48 && event.keyCode <= 90)) {
                 this.userInitialsEntry.text += event.key;
-                // convert user input to UPPERCASE as they're typing
-                this.userInitialsEntry.text = this.userInitialsEntry.text.toUpperCase();
+                // convert user input to display as LOWER CASE as they're typing
+                this.userInitialsEntry.text = this.userInitialsEntry.text.toLowerCase();
 
             }
 
@@ -766,14 +783,7 @@ class Victory extends Phaser.Scene {
                 this.userInitialsEntry.text = this.userInitialsEntry.text.substr(0, this.userInitialsEntry.text.length - 1);
             }
 
-
-
-
         });
-
-        console.log("heyheyhey");
-        console.log(`this.textEntry.text value is initialized as : ${this.userInitialsEntry.text}`);
-        console.log("byebyebye");
 
     }
 
@@ -791,7 +801,9 @@ class Victory extends Phaser.Scene {
 class HighScore extends Phaser.Scene {
     constructor() {
         super('HighScore');
+        this.headerHighScoresText;
         this.currentScoreName;
+        this.otherScoresText;
     }
 
     create(data) {
@@ -799,14 +811,29 @@ class HighScore extends Phaser.Scene {
         // draw all the game objects onto the screen
         this.add.image(500, 300, 'highScoresScreen');
 
+        // header text for the high scores
+        this.headerHighScoresText = this.add.text(300, 200, "names || scores", { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58" });
+
         // print the winners name and their score to the screen
-        this.currentScoreName = this.add.text(200, 100, `${data.inputtedInitials} won the game!\nWinning score : ${data.winningScore} points`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58" });
+        this.currentScoreName = this.add.text(300, 250, `${data.inputtedInitials}\t\t\t\t\t\t\t\t\t${data.winningScore}`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 500});
+
+        // print other players scores and initials
+        this.otherScoresText = this.add.text(300, 300, "john         9\nruth        8\nming         7\nran         5\npaul         4"
+        ,{ fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 600});
+
+        // algorithm to place player score in the correct spot
+        // arrays will store preset names and scores
+        // compare the users score to the other players scores in the array
+        // properly add the users info in the array in the correct position (if it falls between 9 and 8 or another pair)
+        
+        let scores = [9,8,7,5,4];
+        let names = ['john','ruth','ming','ran','paul'];
 
         // This back button will not go back to the victory screen, instead it will proceed to the game menu (essentially restarting the game all over again) 
         const goBackButton = new ButtonComponent({
             scene: this,
-            x: 500, y: 350,
-            scale: 0.3,
+            x: 500, y: 550,
+            scale: 0.2,
             background: 'goTitleScreenButton1',
             onPush: this.goToTitleScene.bind(this)
         });
