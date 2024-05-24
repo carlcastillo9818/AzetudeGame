@@ -1,6 +1,9 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+5-24-24 Successfully implemented the high score table in the high score screen, which has an array that sorts all the players and their scores
+in descending order.
+
 5-12-24 Finished the placement of elements on the victory screen, then started working on the high score screen.
 Came up with an algorithm to sort the scores of the players into descending order, must continue working on implementing it.
 
@@ -548,7 +551,7 @@ class Game extends Phaser.Scene {
 
         // check when player or enemy reaches the maximum score and go to the high score screen
         // 5-12-24 MAKE SURE TO CHECK WHEN EITHER REACHES 10 THEN END THE GAME AND GO TO VICTORY SCREEN
-        if (this.playerScore === 1 || this.enemyScore === 1) {
+        if (this.playerScore === 10 || this.enemyScore === 10) {
             this.goToVictoryScene();
         }
     }
@@ -798,6 +801,21 @@ class Victory extends Phaser.Scene {
     }
 }
 
+class Player {
+    constructor(score, name) {
+        this.score = score;
+        this.name = name;
+    }
+
+    getScore() {
+        return this.score;
+    }
+
+    getName() {
+        return this.name;
+    }
+}
+
 class HighScore extends Phaser.Scene {
     constructor() {
         super('HighScore');
@@ -815,19 +833,74 @@ class HighScore extends Phaser.Scene {
         this.headerHighScoresText = this.add.text(300, 200, "names || scores", { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58" });
 
         // print the winners name and their score to the screen
-        this.currentScoreName = this.add.text(300, 250, `${data.inputtedInitials}\t\t\t\t\t\t\t\t\t${data.winningScore}`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 500});
-
-        // print other players scores and initials
-        this.otherScoresText = this.add.text(300, 300, "john         9\nruth        8\nming         7\nran         5\npaul         4"
-        ,{ fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 600});
+        //this.currentScoreName = this.add.text(300, 250, `${data.inputtedInitials}\t\t\t\t\t\t\t\t\t${data.winningScore}`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 500});
 
         // algorithm to place player score in the correct spot
         // arrays will store preset names and scores
         // compare the users score to the other players scores in the array
         // properly add the users info in the array in the correct position (if it falls between 9 and 8 or another pair)
         
-        let scores = [9,8,7,5,4];
-        let names = ['john','ruth','ming','ran','paul'];
+        let player1 = new Player(9, "john");
+        let player2 = new Player(8, "ruth");
+        let player3 = new Player(7, "ming");
+        let player4 = new Player(5, "ran");
+        let player5 = new Player(4, "paul");
+        let player6 = new Player(data.winningScore, data.inputtedInitials);
+
+
+        let listOfPlayers = new Array;
+
+        listOfPlayers.push(player1);
+        listOfPlayers.push(player2);
+        listOfPlayers.push(player3);
+        listOfPlayers.push(player4);
+        listOfPlayers.push(player5);
+        listOfPlayers.push(player6);
+
+
+        // apply a  descending order sort to the list of players with their scores (objects) 
+        listOfPlayers.sort(function (a, b) { return b.getScore() - a.getScore()});
+
+
+        // store all the names and scores in a string
+        let stringOfText = "";
+        for (let i = 0; i < listOfPlayers.length; i++) {
+            // print all the names and scores in the terminal
+            //console.log(`${listOfPlayers[i].getName()} and ${listOfPlayers[i].getScore()}`);
+            stringOfText += listOfPlayers[i].getName();
+            stringOfText += "\t\t";
+            stringOfText += listOfPlayers[i].getScore();
+            stringOfText += "\n";
+        }
+
+
+        // show the full string as in-game text in the game screen
+        this.otherScoresText = this.add.text(300, 250, stringOfText, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 600 });
+
+        console.log(stringOfText);
+        console.log("\n\nhello ketchup");
+
+        /*
+        compareFunction	Optional.
+        A function that defines a sort order. The function should return a negative, zero, or positive value, depending on the arguments:
+        function(a, b){return a-b}
+        When sort() compares two values, it sends the values to the compare function, and sorts the values according to the returned (negative, zero, positive) value.
+        
+        Example:
+        
+        The sort function will sort 40 as a value lower than 100.
+        
+        When comparing 40 and 100, sort() calls the function(40,100).
+        
+        The function calculates 40-100, and returns -60 (a negative value).
+        */
+
+
+
+
+
+
+
 
         // This back button will not go back to the victory screen, instead it will proceed to the game menu (essentially restarting the game all over again) 
         const goBackButton = new ButtonComponent({
