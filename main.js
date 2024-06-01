@@ -1,6 +1,15 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-1-24 took a week long hiatus due to work and family matters, tested the game more this time today and compared it
+to the early designs of the game to ensure I've implemented all the main screens.  I still have
+to implement the credits scene and options scene.  The final thing to implement will be
+the screen that allows for user to choose between single player or local multiplayer.
+In order for local multiplayer to work properly, keyboard support for a second person will
+need to be added.  When either player wins, then the victory screen should display the winners name
+and high score screen should display the winners name with the other scores only.
+
+
 5-24-24 Successfully implemented the high score table in the high score screen, which has an array that sorts all the players and their scores
 in descending order.
 
@@ -187,6 +196,7 @@ class Preloader extends Phaser.Scene {
         this.load.image('continueButton1','assets/buttons/Continue Button.png');
         this.load.image('highScoresScreen', 'assets/backgrounds/LeaderBoard Resize Pixel (1).png');
         this.load.image('goTitleScreenButton1', 'assets/buttons/go back to title screen button.png');
+        this.load.image('creditsScreen','assets/backgrounds/genericCreditsBackground.png');
     }
 
     create() {
@@ -287,17 +297,22 @@ class Credits extends Phaser.Scene {
 
     create() {
         console.log('Credits.create');
-        this.add.image(500, 300, "menuBG");
+        this.add.image(500, 300, "creditsScreen");
 
         /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
         if they click on the button and not anything else.*/
         const goBackButton = new ButtonComponent({
             scene: this,
-            x: 500, y: 350,
+            x: 100, y: 500,
             scale: 0.3,
             background: 'goBackButton',
             onPush: this.goToTitleScene.bind(this)
         });
+    
+    
+        // display game creators string text in the credits scene
+        this.add.text(300, 200, "project creators\n\ncarlos castillo\n\nrania aisha nuralisa", { fontFamily: 'Dream MMA', fontSize: '35px', fill: "#7DDA58" });
+
     }
 
     // This method will allow the button pressed earlier to proceed to the MAIN game scene.
