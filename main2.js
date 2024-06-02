@@ -1,6 +1,11 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-2-24 Implemented proper credits screen, and started implementing music into the title screen.  The title screen music
+should continue playing when user goes to credits and options.  The music should stop completely when the user starts
+the actual game.  Must continue working on STOPPING the music from starting all over again (therefore creating duplicates)
+when you are coming back from the credits scene to the title scene.
+
 6-1-24 took a week long hiatus due to work and family matters, tested the game more this time today and compared it
 to the early designs of the game to ensure I've implemented all the main screens.  I still have
 to implement the credits scene and options scene.  The final thing to implement will be
@@ -178,6 +183,7 @@ class Preloader extends Phaser.Scene {
          above the background, you would need to ensure that it was added as an image second, after the sky image:
         */
         this.load.audio('ingameMUSIC', 'assets/audio/space-120280.mp3');
+        this.load.audio('titleScreenMusic', 'assets/audio/solitude-dark-ambient-electronic-197737.mp3');
         this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
         this.load.image('playButton', 'assets/buttons/Play Button.png');
         this.load.image('optionButton', 'assets/buttons/Option Button.png');
@@ -196,7 +202,7 @@ class Preloader extends Phaser.Scene {
         this.load.image('continueButton1','assets/buttons/Continue Button.png');
         this.load.image('highScoresScreen', 'assets/backgrounds/LeaderBoard Resize Pixel (1).png');
         this.load.image('goTitleScreenButton1', 'assets/buttons/go back to title screen button.png');
-        this.load.image('creditsScreen','assets/backgrounds/genericCreditsBackground.png');
+        this.load.image('creditsScreen1','assets/backgrounds/Azetude Credits Fixed.png');
     }
 
     create() {
@@ -211,11 +217,17 @@ class Preloader extends Phaser.Scene {
 class Title extends Phaser.Scene {
     constructor() {
         super('Title');
+        this.music;
     }
 
     create() {
         console.log('Title.create');
         this.add.image(500, 300, "menuBG");
+
+        // activate the mp3 music sound for the title game scene
+        this.music = this.sound.add('titleScreenMusic');
+        this.music.play();
+
 
         // this code would be good to use if simply clicking anywhere on the screen enabled the user to go to the game
         //this.input.once('pointerdown', function () {console.log('From SceneA to SceneB');this.goToGameScene();}, this);
@@ -249,7 +261,11 @@ class Title extends Phaser.Scene {
 
     // This method will allow the button pressed earlier to proceed to the MAIN game scene.
     goToGameScene() {
+        // before going to the main game, ensure the old music stops
+        this.music.stop();
         this.scene.start('Game');
+
+        
     }
 
     // This method will allow the button pressed earlier to proceed to the option scene.
@@ -259,7 +275,9 @@ class Title extends Phaser.Scene {
 
     // This method will allow the button pressed earlier to proceed to the credits scene.
     goToCreditScene() {
-        this.scene.start('Credits');
+        this.scene.pause();
+        this.scene.launch('Credits');
+        //this.scene.start('Credits');
     }
 
 }
@@ -293,30 +311,37 @@ class Option extends Phaser.Scene {
 class Credits extends Phaser.Scene {
     constructor() {
         super('Credits');
+        //this.music;
     }
 
     create() {
         console.log('Credits.create');
-        this.add.image(500, 300, "creditsScreen");
+        this.add.image(500, 300, "creditsScreen1");
 
         /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
         if they click on the button and not anything else.*/
         const goBackButton = new ButtonComponent({
             scene: this,
-            x: 100, y: 500,
+            x: 100, y: 75,
             scale: 0.3,
             background: 'goBackButton',
             onPush: this.goToTitleScene.bind(this)
         });
     
-    
+        // activate the mp3 music sound for the credits game scene
+        //this.music = this.sound.add('ingameMUSIC');
+        //this.music.play();
+
+
         // display game creators string text in the credits scene
-        this.add.text(300, 200, "project creators\n\ncarlos castillo\n\nrania aisha nuralisa", { fontFamily: 'Dream MMA', fontSize: '35px', fill: "#7DDA58" });
+        //this.add.text(300, 200, "project creators\n\ncarlos castillo\n\nrania aisha nuralisa", { fontFamily: 'Dream MMA', fontSize: '35px', fill: "#7DDA58" });
 
     }
 
-    // This method will allow the button pressed earlier to proceed to the MAIN game scene.
+    // This method will allow the button pressed earlier to proceed to the title screen game scene.
     goToTitleScene() {
+        // stop the music before going back to the title screen
+        //this.music.stop();
         this.scene.start('Title');
     }
 }
