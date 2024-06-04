@@ -1,6 +1,13 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-4-24
+removed all prior sounds in the title screen then activate the mp3 music sound for the title game scene
+this order ensures that every time the user returns from the options and credits scenes then the music
+in the the title screen wont play repeatedly over itself.  added a click anywhere scene which will bridge
+gap between preload and title screen for audio purposes.
+
+
 6-2-24 Implemented proper credits screen, and started implementing music into the title screen.  The title screen music
 should continue playing when user goes to credits and options.  The music should stop completely when the user starts
 the actual game.  Must continue working on STOPPING the music from starting all over again (therefore creating duplicates)
@@ -212,7 +219,11 @@ class Preloader extends Phaser.Scene {
     }
 }
 
-
+class ClickAnywhere extends Phaser.Scene{
+    constructor(){
+        super('ClickAnywhere');
+    }
+}
 
 class Title extends Phaser.Scene {
     constructor() {
@@ -224,9 +235,20 @@ class Title extends Phaser.Scene {
         console.log('Title.create');
         this.add.image(500, 300, "menuBG");
 
-        // activate the mp3 music sound for the title game scene
+
+        console.log(this.sound.locked);
+        
+        // 6-4-24 
+        /* remove all prior sounds in the title screen then activate the mp3 music sound for the title game scene
+        this order ensures that every time the user returns from the options and credits scenes then the music
+        in the the title screen wont play repeatedly over itself */
+        this.sound.removeAll();
+        console.log("removing all active sounds...");
         this.music = this.sound.add('titleScreenMusic');
         this.music.play();
+        console.log("playing title screen music..");
+
+        
 
 
         // this code would be good to use if simply clicking anywhere on the screen enabled the user to go to the game
