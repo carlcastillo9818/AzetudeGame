@@ -1,6 +1,12 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-6-24
+added a click anywhere screen that preceeds the title screen, the idea is that once the user clicks on this black screen with text, then music will start playing on the title screen immediately.
+before this, the user had to click somewhere on the title screen to trigger the background music which is not normal.
+Added an event that detects when user presses pointer on the game background and causes title screen to start
+
+
 6-4-24
 removed all prior sounds in the title screen then activate the mp3 music sound for the title game scene
 this order ensures that every time the user returns from the options and credits scenes then the music
@@ -189,7 +195,7 @@ class Preloader extends Phaser.Scene {
         The order in which game objects are displayed matches the order in which you create them. So if you wish to place a star sprite
          above the background, you would need to ensure that it was added as an image second, after the sky image:
         */
-        this.load.audio('ingameMUSIC', 'assets/audio/space-120280.mp3');
+        this.load.audio('ingameMUSIC', 'assets/audio/spacebyMusicUnlimited.mp3');
         this.load.audio('titleScreenMusic', 'assets/audio/solitude-dark-ambient-electronic-197737.mp3');
         this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
         this.load.image('playButton', 'assets/buttons/Play Button.png');
@@ -210,12 +216,13 @@ class Preloader extends Phaser.Scene {
         this.load.image('highScoresScreen', 'assets/backgrounds/LeaderBoard Resize Pixel (1).png');
         this.load.image('goTitleScreenButton1', 'assets/buttons/go back to title screen button.png');
         this.load.image('creditsScreen1','assets/backgrounds/Azetude Credits Fixed.png');
+        this.load.image('blackScreenClickAnywhere','assets/backgrounds/backgroundClickAnywhere.png');
     }
 
     create() {
         console.log('Preloader.create');
 
-        this.scene.start('Title');
+        this.scene.start('ClickAnywhere');
     }
 }
 
@@ -223,7 +230,30 @@ class ClickAnywhere extends Phaser.Scene{
     constructor(){
         super('ClickAnywhere');
     }
+
+    create(){
+        console.log("ClickAnywhere.create");
+        //added on 6-6-24
+        // added a click anywhere screen that preceeds the title screen, the idea is that once the user clicks on this black screen with text, then music will start playing on the title screen immediately.
+        // before this, the user had to click somewhere on the title screen to trigger the background music which is not normal.
+        this.add.image(500,300,"blackScreenClickAnywhere").setInteractive();
+        this.promptEnterText = this.add.text(100, 300, 'click anywhere to start the game', { fontFamily: 'Dream MMA', fontSize: '30px', fill: "#ff0606", fixedWidth: 1000 });
+    
+        // detects when user presses pointer on the game background and causes title screen to start
+        this.input.on('pointerdown', callback => {
+            console.log("calling function without a name");
+            this.scene.start('Title');
+        });
+    }
+
+    // This method will allow the button pressed earlier to proceed to the MAIN game scene.
+    //goToTitleScene() {
+    //   this.scene.start('Title');
+    //}
+
+
 }
+
 
 class Title extends Phaser.Scene {
     constructor() {
@@ -234,11 +264,7 @@ class Title extends Phaser.Scene {
     create() {
         console.log('Title.create');
         this.add.image(500, 300, "menuBG");
-
-
-        console.log(this.sound.locked);
         
-        // 6-4-24 
         /* remove all prior sounds in the title screen then activate the mp3 music sound for the title game scene
         this order ensures that every time the user returns from the options and credits scenes then the music
         in the the title screen wont play repeatedly over itself */
@@ -1002,6 +1028,6 @@ const config = {
             debug: false
         }
     },
-    scene: [Boot, Preloader, Title, Option, Credits, Game, PauseMenu, Victory, HighScore]
+    scene: [Boot, Preloader, ClickAnywhere, Title, Option, Credits, Game, PauseMenu, Victory, HighScore]
 };
 const game = new Phaser.Game(config);
