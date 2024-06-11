@@ -4,8 +4,7 @@ Further progress updates will be written here (much like what I did for my Frogg
 6-11-24
 Successfully managed to implement the title screen music which plays throughout option and credits screens too.  When the user enters the game scene, the title music ends,
 but if the user decides to go back to the title screen (Effectively resetting the azetude game) then the title music is played once again from the beginning.  The user
-can still hear the title music playing as they explore the options and credit scenes as before.  Started working on the options screen MUTE button and its functionality.
-
+can still hear the title music playing as they explore the options and credit scenes as before.  Started working on the options screen MUTE and UNMUTE buttons.
 6-6-24
 added a click anywhere screen that preceeds the title screen, the idea is that once the user clicks on this black screen with text, then music will start playing on the title screen immediately.
 before this, the user had to click somewhere on the title screen to trigger the background music which is not normal.
@@ -357,7 +356,7 @@ class Option extends Phaser.Scene {
         /* Button object allows user to go back to the title screen.*/
         const goBackButton = new ButtonComponent({
             scene: this,
-            x: 100, y: 350,
+            x: 100, y: 75,
             scale: 0.3,
             background: 'goBackButton',
             onPush: this.goToTitleScene.bind(this)
@@ -366,7 +365,7 @@ class Option extends Phaser.Scene {
         // Mute button that activates a method that will silence all game noises (mute)
         const muteButton = new ButtonComponent({
             scene: this,
-            x: 500, y: 350,
+            x: 375, y: 350,
             scale: 0.3,
             background: 'muteButton',
             onPush: this.muteAllAudio.bind(this)
@@ -375,10 +374,10 @@ class Option extends Phaser.Scene {
         // Mute button that activates a method that will silence all game noises (mute)
         const soundButton = new ButtonComponent({
             scene: this,
-            x: 500, y: 350,
+            x: 625, y: 350,
             scale: 0.3,
             background: 'soundButton',
-            onPush: this.muteAllAudio.bind(this)
+            onPush: this.playAllAudio.bind(this)
         });
 
         //this.load.image('muteButton', 'assets/sprites/Mute Button.png');
@@ -398,12 +397,15 @@ class Option extends Phaser.Scene {
     
     // This method mutes all in-game music and sounds
     muteAllAudio() {
-        console.log("MUTING ALL GAME AUDIO");
+        
+        console.log("muting all audio");
         game.sound.mute = true;
     }
 
     // This method plays all in-game music and sounds
     playAllAudio(){
+        console.log("unmuting all audio");
+
         game.sound.mute = false;
     }
 
