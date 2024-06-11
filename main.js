@@ -372,6 +372,14 @@ class Option extends Phaser.Scene {
             onPush: this.muteAllAudio.bind(this)
         });
 
+        // Mute button that activates a method that will silence all game noises (mute)
+        const soundButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 350,
+            scale: 0.3,
+            background: 'soundButton',
+            onPush: this.muteAllAudio.bind(this)
+        });
 
         //this.load.image('muteButton', 'assets/sprites/Mute Button.png');
         //this.load.image('soundButton', 'assets/sprites/Music Button.png');
@@ -392,6 +400,11 @@ class Option extends Phaser.Scene {
     muteAllAudio() {
         console.log("MUTING ALL GAME AUDIO");
         game.sound.mute = true;
+    }
+
+    // This method mutes all in game music and sounds
+    playAllAudio(){
+        game.sound.mute = false;
     }
 
 }
