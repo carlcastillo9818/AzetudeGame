@@ -1,6 +1,11 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-11-24
+Successfully managed to implement the title screen music which plays throughout option and credits screens too.  When the user enters the game scene, the title music ends,
+but if the user decides to go back to the title screen (Effectively resetting the azetude game) then the title music is played once again from the beginning.  The user
+can still hear the title music playing as they explore the options and credit scenes as before.  Started working on the options screen MUTE button and its functionality.
+
 6-6-24
 added a click anywhere screen that preceeds the title screen, the idea is that once the user clicks on this black screen with text, then music will start playing on the title screen immediately.
 before this, the user had to click somewhere on the title screen to trigger the background music which is not normal.
@@ -198,6 +203,7 @@ class Preloader extends Phaser.Scene {
         this.load.audio('ingameMUSIC', 'assets/audio/spacebyMusicUnlimited.mp3');
         this.load.audio('titleScreenMusic', 'assets/audio/solitude-dark-ambient-electronic-197737.mp3');
         this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
+        this.load.image('optionBG', 'assets/backgrounds/Options Background.png');
         this.load.image('playButton', 'assets/buttons/Play Button.png');
         this.load.image('optionButton', 'assets/buttons/Option Button.png');
         this.load.image('creditsButton', 'assets/buttons/Credits Button.png');
@@ -217,6 +223,9 @@ class Preloader extends Phaser.Scene {
         this.load.image('goTitleScreenButton1', 'assets/buttons/go back to title screen button.png');
         this.load.image('creditsScreen1','assets/backgrounds/Azetude Credits Fixed.png');
         this.load.image('blackScreenClickAnywhere','assets/backgrounds/backgroundClickAnywhere.png');
+        this.load.image('muteButton','assets/buttons/Mute Button.png');
+        this.load.image('soundButton','assets/buttons/Music Button.png');
+
     }
 
     create() {
@@ -229,21 +238,36 @@ class Preloader extends Phaser.Scene {
 class ClickAnywhere extends Phaser.Scene{
     constructor(){
         super('ClickAnywhere');
+        this.music;
     }
 
     create(){
         console.log("ClickAnywhere.create");
+
+
+
+        //this.sound.removeAll(); <-- removing this now 6-11-24 because its no longer necessary
+        //console.log("removing all active sounds...")    
+        let gameMusic = this.sound.add('titleScreenMusic');
+        gameMusic.loop = true;
+        gameMusic.play();
+
         //added on 6-6-24
         // added a click anywhere screen that preceeds the title screen, the idea is that once the user clicks on this black screen with text, then music will start playing on the title screen immediately.
         // before this, the user had to click somewhere on the title screen to trigger the background music which is not normal.
         this.add.image(500,300,"blackScreenClickAnywhere").setInteractive();
         this.promptEnterText = this.add.text(100, 300, 'click anywhere to start the game', { fontFamily: 'Dream MMA', fontSize: '30px', fill: "#ff0606", fixedWidth: 1000 });
     
+        /* remove all prior sounds then activate the mp3 music sound for the upcoming title game scene
+        this order ensures that every time the user returns from the options and credits scenes then the music
+        in the the title screen wont play repeatedly over itself */
+ 
         // detects when user presses pointer on the game background and causes title screen to start
         this.input.on('pointerdown', callback => {
             console.log("calling function without a name");
-            this.scene.start('Title');
+            this.scene.start('Title', {gameMusic});
         });
+
     }
 
     // This method will allow the button pressed earlier to proceed to the MAIN game scene.
@@ -261,21 +285,12 @@ class Title extends Phaser.Scene {
         this.music;
     }
 
-    create() {
+    create(data) {
         console.log('Title.create');
         this.add.image(500, 300, "menuBG");
         
-        /* remove all prior sounds in the title screen then activate the mp3 music sound for the title game scene
-        this order ensures that every time the user returns from the options and credits scenes then the music
-        in the the title screen wont play repeatedly over itself */
-        this.sound.removeAll();
-        console.log("removing all active sounds...");
-        this.music = this.sound.add('titleScreenMusic');
-        this.music.play();
         console.log("playing title screen music..");
-
-        
-
+        this.music = data.gameMusic;
 
         // this code would be good to use if simply clicking anywhere on the screen enabled the user to go to the game
         //this.input.once('pointerdown', function () {console.log('From SceneA to SceneB');this.goToGameScene();}, this);
@@ -309,11 +324,13 @@ class Title extends Phaser.Scene {
 
     // This method will allow the button pressed earlier to proceed to the MAIN game scene.
     goToGameScene() {
+        /* local var will store reference to the title music in the title screen,
+         this will allow the music to resume when user returns from game scene */
+        let continueGameMusic = this.music;
+
         // before going to the main game, ensure the old music stops
         this.music.stop();
-        this.scene.start('Game');
-
-        
+        this.scene.start('Game',{continueGameMusic});
     }
 
     // This method will allow the button pressed earlier to proceed to the option scene.
@@ -323,9 +340,7 @@ class Title extends Phaser.Scene {
 
     // This method will allow the button pressed earlier to proceed to the credits scene.
     goToCreditScene() {
-        this.scene.pause();
-        this.scene.launch('Credits');
-        //this.scene.start('Credits');
+        this.scene.start('Credits');
     }
 
 }
@@ -337,23 +352,48 @@ class Option extends Phaser.Scene {
 
     create() {
         console.log('Option.create');
-        this.add.image(500, 300, "menuBG");
+        this.add.image(500, 300, "optionBG");
 
-        /* Button component code will be used instead of the code above, this ensures the user can only proceed to the game
-        if they click on the button and not anything else.*/
+        /* Button object allows user to go back to the title screen.*/
         const goBackButton = new ButtonComponent({
             scene: this,
-            x: 500, y: 350,
+            x: 100, y: 350,
             scale: 0.3,
             background: 'goBackButton',
             onPush: this.goToTitleScene.bind(this)
         });
+
+        // Mute button that activates a method that will silence all game noises (mute)
+        const muteButton = new ButtonComponent({
+            scene: this,
+            x: 500, y: 350,
+            scale: 0.3,
+            background: 'muteButton',
+            onPush: this.muteAllAudio.bind(this)
+        });
+
+
+        //this.load.image('muteButton', 'assets/sprites/Mute Button.png');
+        //this.load.image('soundButton', 'assets/sprites/Music Button.png');
+
+
+        
     }
 
-    // This method will allow the button pressed earlier to proceed to the MAIN game scene.
+    // This method will allow the button pressed earlier to proceed to the title screen game scene.
     goToTitleScene() {
+        // stop the music before going back to the title screen
+        //this.music.stop();
+        console.log("hi carl");
         this.scene.start('Title');
     }
+    
+    // This method mutes all in game music and sounds
+    muteAllAudio() {
+        console.log("MUTING ALL GAME AUDIO");
+        game.sound.mute = true;
+    }
+
 }
 
 class Credits extends Phaser.Scene {
@@ -390,6 +430,7 @@ class Credits extends Phaser.Scene {
     goToTitleScene() {
         // stop the music before going back to the title screen
         //this.music.stop();
+        console.log("hi carl");
         this.scene.start('Title');
     }
 }
@@ -412,6 +453,7 @@ class Game extends Phaser.Scene {
         this.xVelocityBallEnemy = this.getRndInteger(-700, -800);
         this.yVelocityBallEnemyList = [this.getRndInteger(0, 0), this.getRndInteger(-300, -400), this.getRndInteger(300, 400)];
 
+        this.titleMusic;
     }
 
     /**  About each function:
@@ -422,7 +464,12 @@ class Game extends Phaser.Scene {
     It’s a game loop in which redrawing, moving objects, etc. occurs.
     */
 
-    create() {
+    create(data) {
+        /* this var carries over the title music from the title scene into the game scene, it will be useful
+        to allow the music to replay if the user chooses to GO BACK to the TITLE scene from the game scene.*/
+        this.titleMusic = data.continueGameMusic;
+
+
         console.log('Game.create');
         // activate the mp3 music sound for the main game scene
         this.music = this.sound.add('ingameMUSIC');
@@ -710,12 +757,19 @@ class Game extends Phaser.Scene {
         }
     }
 
-    // This method will allow the button component to proceed to the title scene, reset scores, and stop the music.
+    // This method will allow the button component to proceed to the title scene, reset scores, stop the main game music, and also plays the title music.
     goToTitleScene() {
         console.log('Going from Game to Title scene');
+
         this.playerScore = 0;
         this.enemyScore = 0;
         this.music.stop();
+
+        // the music var that was carried over from the Title game scene into the Game scene is referenced one more time here.  
+        //The music is played once again as the user is entering the title screen once again.
+        let playbackTitleMusic = this.titleMusic;
+        playbackTitleMusic.play();
+
         this.scene.start('Title');
     }
 
