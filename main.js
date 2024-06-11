@@ -396,13 +396,13 @@ class Option extends Phaser.Scene {
         this.scene.start('Title');
     }
     
-    // This method mutes all in game music and sounds
+    // This method mutes all in-game music and sounds
     muteAllAudio() {
         console.log("MUTING ALL GAME AUDIO");
         game.sound.mute = true;
     }
 
-    // This method mutes all in game music and sounds
+    // This method plays all in-game music and sounds
     playAllAudio(){
         game.sound.mute = false;
     }
