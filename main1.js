@@ -1,10 +1,15 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-13-24 implemented mute and unmute buttons, must test them out to make sure they don't cause audio problems in other scenes of the game.
+
+
 6-11-24
 Successfully managed to implement the title screen music which plays throughout option and credits screens too.  When the user enters the game scene, the title music ends,
 but if the user decides to go back to the title screen (Effectively resetting the azetude game) then the title music is played once again from the beginning.  The user
 can still hear the title music playing as they explore the options and credit scenes as before.  Started working on the options screen MUTE and UNMUTE buttons.
+
+
 6-6-24
 added a click anywhere screen that preceeds the title screen, the idea is that once the user clicks on this black screen with text, then music will start playing on the title screen immediately.
 before this, the user had to click somewhere on the title screen to trigger the background music which is not normal.
@@ -398,13 +403,13 @@ class Option extends Phaser.Scene {
     // This method mutes all in-game music and sounds
     muteAllAudio() {
         
-        console.log("muting all audio");
+        console.log("muting all music");
         game.sound.mute = true;
     }
 
     // This method plays all in-game music and sounds
     playAllAudio(){
-        console.log("unmuting all audio");
+        console.log("unmuting all music");
 
         game.sound.mute = false;
     }
