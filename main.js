@@ -225,7 +225,7 @@ class Preloader extends Phaser.Scene {
         this.load.image('continueButton1','assets/buttons/Continue Button.png');
         this.load.image('highScoresScreen', 'assets/backgrounds/LeaderBoard Resize Pixel (1).png');
         this.load.image('goTitleScreenButton1', 'assets/buttons/go back to title screen button.png');
-        this.load.image('creditsScreen1','assets/backgrounds/Azetude Credits Fixed.png');
+        this.load.image('creditsScreen1','assets/backgrounds/revisedCreditsScreenByCarlos.png');
         this.load.image('blackScreenClickAnywhere','assets/backgrounds/backgroundClickAnywhere.png');
         this.load.image('muteButton','assets/buttons/Mute Button.png');
         this.load.image('soundButton','assets/buttons/Music Button.png');
@@ -992,7 +992,7 @@ class HighScore extends Phaser.Scene {
         this.add.image(500, 300, 'highScoresScreen');
 
         // header text for the high scores
-        this.headerHighScoresText = this.add.text(300, 200, "names || scores", { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58" });
+        this.headerHighScoresText = this.add.text(300, 200, "names || scores", { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#ffffff" });
 
         // print the winners name and their score to the screen
         //this.currentScoreName = this.add.text(300, 250, `${data.inputtedInitials}\t\t\t\t\t\t\t\t\t${data.winningScore}`, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 500});
@@ -1029,18 +1029,17 @@ class HighScore extends Phaser.Scene {
         for (let i = 0; i < listOfPlayers.length; i++) {
             // print all the names and scores in the terminal
             //console.log(`${listOfPlayers[i].getName()} and ${listOfPlayers[i].getScore()}`);
-            stringOfText += listOfPlayers[i].getName();
-            stringOfText += "\t\t";
+            stringOfText += listOfPlayers[i].getName() + "\t\t\t\t\t\t\t\t\t\t\t";
             stringOfText += listOfPlayers[i].getScore();
             stringOfText += "\n";
         }
 
 
         // show the full string as in-game text in the game screen
-        this.otherScoresText = this.add.text(300, 250, stringOfText, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#7DDA58", fixedWidth: 600 });
+        this.otherScoresText = this.add.text(300, 250, stringOfText, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#ffffff", fixedWidth: 1000 });
 
         console.log(stringOfText);
-        console.log("\n\nhello ketchup");
+        console.log(`(if you see this message ${player6.getName}, you're cool.)`);
 
         /*
         compareFunction	Optional.
@@ -1057,27 +1056,20 @@ class HighScore extends Phaser.Scene {
         The function calculates 40-100, and returns -60 (a negative value).
         */
 
-
-
-
-
-
-
-
         // This back button will not go back to the victory screen, instead it will proceed to the game menu (essentially restarting the game all over again) 
         const goBackButton = new ButtonComponent({
             scene: this,
             x: 500, y: 550,
             scale: 0.2,
             background: 'goTitleScreenButton1',
-            onPush: this.goToTitleScene.bind(this)
+            onPush: this.goToInitialScene.bind(this)
         });
     
     }
 
-    // This method will cause the scene to change to the title screen menu and the player can start playing the game once again.
-    goToTitleScene() {
-        this.scene.start('Title');
+    // This method will cause the scene to change to the click anywhere screen menu and the player can start playing the game once again.
+    goToInitialScene() {
+        this.scene.start('ClickAnywhere');
     }
 }
 
