@@ -1,6 +1,12 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-20-24 updated some comments, tested out the game with the player winning one match and the AI winning another match, all graphics and music and mechanics seem to be working
+properly.  Next step is to record a video demonstration.
+
+6-18-24 Tested the audio buttons which work correctly, then implemented a new credits background made by me (Carlos Castillo).  Last thing to do is test the game
+out in various test runs then publish this to GitHub, linkedin, and any other page.  Also will record a youtube video demonstration of the game.
+
 6-13-24 implemented mute and unmute buttons, must test them out to make sure they don't cause audio problems in other scenes of the game.
 
 
@@ -63,7 +69,7 @@ two buttons.  Will improve this with better looking images for the buttons and a
 4-29-24 Managed to translate the main game codes paradigm over to OOP style and implemented a title menu scene
 which preceeds the game. Added a button in the title screen to enable the user to go to the game when they press the button.
 Downloaded more asset images from the Google Drive folder made by Rania, she also resized the images to fit
-the dimensions of the game properly, thank you bby girl. Added option scene, credit scene, and high score scene later in the day.
+the dimensions of the game properly, thank you Rania . Added option scene, credit scene, and high score scene later in the day.
 
 
 4-28 and 4-27 
@@ -1038,8 +1044,7 @@ class HighScore extends Phaser.Scene {
         // show the full string as in-game text in the game screen
         this.otherScoresText = this.add.text(300, 250, stringOfText, { fontFamily: 'Dream MMA', fontSize: '40px', fill: "#ffffff", fixedWidth: 1000 });
 
-        console.log(stringOfText);
-        console.log(`(if you see this message ${player6.getName}, you're cool.)`);
+        console.log(`(if you see this message ${player6.getName()}, you're cool!)`);
 
         /*
         compareFunction	Optional.
