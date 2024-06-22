@@ -1,6 +1,8 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+extra: trying to connect this app to heroku to deploy online
+
 6-22-24 made some final changes to main game music loop and stopping. recorded video demonstration. next step
 is to upload to youtube and post on website/linkedin/etc.  I'm happy to say that this project is officially finished :).
 BIG thank you to Rania (my partner for this game project) who helped out with designing all the sprites, backgrounds, and giving suggestions
