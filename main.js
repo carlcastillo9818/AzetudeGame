@@ -1,6 +1,16 @@
 /* 
 Further progress updates will be written here (much like what I did for my Frogger game)
 
+6-22-24 made some final changes to main game music loop and stopping. recorded video demonstration. next step
+is to upload to youtube and post on website/linkedin/etc.  I'm happy to say that this project is officially finished :).
+BIG thank you to Rania (my partner for this game project) who helped out with designing all the sprites, backgrounds, and giving suggestions
+for the games music.  It inspired me to learn to make my own sprites and backgrounds for my next game.  Meanwhile I did 
+all the work on the coding side (the paddles, the ball, the buttons, generating
+leaderboard, user initials input, etc.) and implemented the songs into the game as well as setting up the game to work in the browser with
+WAMP.net.  Also thank you to the music artists for providing the songs in the game as well as the creators of the fonts
+used for this game, I have included credits for them in the game and in some text files in the project folder.
+
+
 6-20-24 updated some comments, tested out the game with the player winning one match and the AI winning another match, all graphics and music and mechanics seem to be working
 properly.  Next step is to record a video demonstration.
 
@@ -465,7 +475,7 @@ class Game extends Phaser.Scene {
 
     constructor() {
         super('Game');
-
+        this.music;
         this.playerScore = 0;
         this.enemyScore = 0;
         this.goBackButton;
