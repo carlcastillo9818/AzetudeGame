@@ -499,6 +499,7 @@ class Game extends Phaser.Scene {
         console.log('Game.create');
         // activate the mp3 music sound for the main game scene
         this.music = this.sound.add('ingameMUSIC');
+        this.music.loop = true;
         this.music.play();
 
         // draw all the game objects onto the screen
@@ -836,11 +837,10 @@ class Game extends Phaser.Scene {
     pauseGame() {
         console.log("pausing game");
         this.scene.pause();
-        this.music.stop();
+        //this.music.stop();
         this.scene.launch('PauseMenu');
     }
 }
-
 
 class PauseMenu extends Phaser.Scene {
     constructor() {
