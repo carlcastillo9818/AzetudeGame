@@ -224,7 +224,7 @@ class Preloader extends Phaser.Scene {
         */
         this.load.audio('ingameMUSIC', 'assets/audio/spacebyMusicUnlimited.mp3');
         this.load.audio('titleScreenMusic', 'assets/audio/solitude-dark-ambient-electronic-197737.mp3');
-        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed.png');
+        this.load.image('menuBG', 'assets/backgrounds/Menu BackgroundFixed2.png');
         this.load.image('optionBG', 'assets/backgrounds/Options Background.png');
         this.load.image('playButton', 'assets/buttons/Play Button.png');
         this.load.image('optionButton', 'assets/buttons/Option Button.png');
